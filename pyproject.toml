@@ -1,0 +1,86 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ckanext-push-errors"
+# see tool.setuptools.dynamic in this file
+dynamic = ["version"]
+description = "CKAN extension to push critical error to external URLs (like Slack)"
+readme = "README.md"
+requires-python = ">=3.10"
+
+authors = [
+    { name = "Andres Vazquez", email = "andres.vazquez.flexes@gmail.com" }
+]
+maintainers = [
+  { name = "Andres Vazquez", email = "andres.vazquez.flexes@gmail.com" },
+  { name = "German Favaro", email = "germankay@gmail.com" },
+]
+
+keywords = ["CKAN", "Error 500", "Push", "Slack", "Notification"]
+
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/unckan/ckanext-push-errors"
+"Issues" = "https://github.com/unckan/ckanext-push-errors/issues"
+
+# [project.dependencies]
+# Dependencies should be listed in requirements.txt as per CKAN extension best practices
+# Example:
+# requests = "*"
+# flask = "*"
+
+[project.optional-dependencies]
+# Optional dependencies can be listed here
+# dev = [
+#     "pytest",
+#     "flake8",
+# ]
+
+[tool.setuptools.packages.find]
+where = ["."]
+exclude = ["contrib", "docs", "tests*"]
+namespaces = true
+
+[tool.setuptools.package-data]
+include = ["*"]
+
+[tool.setuptools.dynamic]
+version = {attr = "ckanext.push_errors.__VERSION__"}
+
+[tool.setuptools.data-files]
+# Data files can be listed here
+# Example:
+# "my_data" = ["path/to/data/file"]
+
+[project.scripts]
+# Entry points for console scripts can be added here
+# Example:
+# your_command = "your_module:main"
+
+[project.entry-points."ckan.plugins"]
+push_errors = "ckanext.push_errors.plugin:PushErrorsPlugin"
+
+[project.entry-points."babel.extractors"]
+ckan = "ckan.lib.extract:extract_ckan"
+
+[tool.babel.extractors.ckanext]
+"**.py" = "python"
+"**.js" = "javascript"
+"**/templates/**.html" = "ckan"
+
+[tool.pytest.ini_options]
+filterwarnings = [
+    "ignore::sqlalchemy.exc.SADeprecationWarning",
+    "ignore::sqlalchemy.exc.SAWarning",
+    "ignore::DeprecationWarning"
+]
+addopts = "--ckan-ini test.ini"

@@ -1,6 +1,3 @@
-"""
-We want to receive notification on Slack when an error occurs in the application.
-"""
 import json
 import logging
 from datetime import datetime

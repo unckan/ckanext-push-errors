@@ -1,4 +1,5 @@
-[![Tests](https://github.com/unckan/ckanext-push-errors/workflows/Tests/badge.svg?branch=main)](https://github.com/unckan/ckanext-push-errors/actions)
+[![Tests](https://github.com/unckan/ckanext-push-errors/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/unckan/ckanext-push-errors/actions)
+
 
 # ckanext-push-errors
 

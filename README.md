@@ -2,81 +2,53 @@
 
 # ckanext-push-errors
 
-**TODO:** Put a description of your extension here:  What does it do? What features does it have? Consider including some screenshots or embedding a video!
+CKAN extension to push critical error to external URLs (like Slack).  
 
 
 ## Requirements
 
-**TODO:** For example, you might want to mention here which versions of CKAN this
-extension works with.
-
-If your extension works across different versions you can add the following table:
+Youu'll requerie an external service to receive the messages. This service must be able to receive POST or GET requests.  
 
 Compatibility with core CKAN versions:
 
 | CKAN version    | Compatible?   |
 | --------------- | ------------- |
-| 2.6 and earlier | not tested    |
-| 2.7             | not tested    |
-| 2.8             | not tested    |
-| 2.9             | not tested    |
-
-Suggested values:
-
-* "yes"
-* "not tested" - I can't think of a reason why it wouldn't work
-* "not yet" - there is an intention to get it working
-* "no"
-
+| 2.9 and earlier | not tested    |
+| 2.10            | tested        |
+| 2.11            | not yet       |
 
 ## Installation
 
-**TODO:** Add any additional install steps to the list below.
-   For example installing any non-Python dependencies or adding any required
-   config settings.
-
 To install ckanext-push-errors:
 
-1. Activate your CKAN virtual environment, for example:
+```bash
+pip install -e git+https://github.com/unckan/ckanext-push-errors.git@0.1.0#egg=ckanext-superset
+pip install -r https://raw.githubusercontent.com/unckan/ckanext-push-errors/refs/tags/0.1.0/requirements.txt
+```
 
-     . /usr/lib/ckan/default/bin/activate
-
-2. Clone the source and install it on the virtualenv
-
-    git clone https://github.com/unckan/ckanext-push-errors.git
-    cd ckanext-push-errors
-    pip install -e .
-	pip install -r requirements.txt
-
-3. Add `push-errors` to the `ckan.plugins` setting in your CKAN
-   config file (by default the config file is located at
-   `/etc/ckan/default/ckan.ini`).
-
-4. Restart CKAN. For example if you've deployed CKAN with Apache on Ubuntu:
-
-     sudo service apache2 reload
-
+Then add `push_errors` to the `ckan.plugins` setting in your CKAN config file.  
 
 ## Config settings
 
-None at present
+Available settings. Many of them can be formatted with context values:
 
-**TODO:** Document any optional config settings here. For example:
+ - `ckanext.push_errors.url=http://myserver.com`: The URL to push the message
+ - `ckanext.push_errors.method=POST`: The method to use (POST or GET only)
+ - `ckanext.push_errors.headers='{"Authorization": "Token 123"}'`: A JSON string with the headers to send
+ - `ckanext.push_errors.data:'{"message": "{message}"}'`: A JSON string with the data to send
+ - `ckanext.push_errors.title="PUSH_ERROR v{push_errors_version} - CKAN {ckan_version}\n{now}\n\n"`: The title (first part) of the message
 
-	# The minimum number of hours to wait before re-checking a resource
-	# (optional, default: 24).
-	ckanext.push_errors.some_setting = some_default_value
+### Config settings for known platforms
 
+#### Slack
 
-## Developer installation
+You can post all errors to a Slack channel. You'll need to create a webhook in Slack.
+Then use the following settings:
 
-To install ckanext-push-errors for development, activate your CKAN virtualenv and
-do:
-
-    git clone https://github.com/unckan/ckanext-push-errors.git
-    cd ckanext-push-errors
-    pip install -e .
-    pip install -r dev-requirements.txt
+ - `ckanext.push_errors.url=https://hooks.slack.com/services/T02XXXXXX/B061XXXXXX/GASXXXxxxXXXxxx` (something like this).
+ - `ckanext.push_errors.method=POST`:
+ - `ckanext.push_errors.headers="{}"`
+ - `ckanext.push_errors.data='{"text": "{message}", "username": "CKAN PUSH ERRORS", "icon_url": "https://github.com/unckan/ckanext-push-errors/raw/main/icons/server-error.png"}'`: Slack requires the `text` field to be present.
 
 
 ## Tests

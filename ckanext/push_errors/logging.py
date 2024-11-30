@@ -7,7 +7,7 @@ from datetime import datetime
 from logging import Handler, CRITICAL
 import requests
 from ckan import __version__ as ckan_version
-from ckanext.plugins.toolkit import config
+from ckan.plugins import toolkit
 from ckanext.push_errors import __VERSION__ as push_errors_version
 
 
@@ -47,7 +47,7 @@ def push_message(message, extra_context={}):
      - ckanext.push_errors.data: A JSON string with the data to send
     """
 
-    url = config.get('ckanext.push_errors.url')
+    url = toolkit.config.get('ckanext.push_errors.url')
 
     if not url:
         log.error('No push-errors defined')
@@ -55,7 +55,7 @@ def push_message(message, extra_context={}):
 
     # Context vars
     ctx = {
-        'site_url': config.get('ckan.site_url'),  # For user to know the environment (if multiple)
+        'site_url': toolkit.config.get('ckan.site_url'),  # For user to know the environment (if multiple)
         'message': message,  # The message itself, it could include tracebacks
         'ckan_version': ckan_version,
         'push_errors_version': push_errors_version,
@@ -66,13 +66,13 @@ def push_message(message, extra_context={}):
 
     # Set the title for the message
     default_title = 'PUSH_ERROR v{push_errors_version} - CKAN {ckan_version}\n{now}\n\n'
-    title = config.get('ckanext.push_errors.title', default_title)
+    title = toolkit.config.get('ckanext.push_errors.title', default_title)
 
     message = title.format(**ctx) + message
 
-    method = config.get('ckanext.push_errors.method', 'POST')
+    method = toolkit.config.get('ckanext.push_errors.method', 'POST')
     # Allow multiple headers in config
-    headers_str = config.get('ckanext.push_errors.headers', '{}')
+    headers_str = toolkit.config.get('ckanext.push_errors.headers', '{}')
     try:
         headers = json.loads(headers_str)
     except json.JSONDecodeError:
@@ -82,7 +82,7 @@ def push_message(message, extra_context={}):
     for key, value in headers.items():
         headers[key] = value.format(**ctx)
 
-    data = config.get('ckanext.push_errors.data', '{}')
+    data = toolkit.config.get('ckanext.push_errors.data', '{}')
     try:
         data = json.loads(data)
     except json.JSONDecodeError:

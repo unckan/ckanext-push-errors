@@ -4,6 +4,7 @@ from datetime import datetime
 from logging import Handler, CRITICAL
 import requests
 from ckan import __version__ as ckan_version
+from ckan.common import current_user
 from ckan.plugins import toolkit
 from ckanext.push_errors import __VERSION__ as push_errors_version
 
@@ -36,6 +37,7 @@ def push_message(message, extra_context={}):
      - {ckan_version}: The CKAN version
      - {push_errors_version}: The push_errors extension version
      - {now}: The current datetime
+     - {user}: The current user name (or "-")
     You can add more context vars in extra_context
     Expected CKAN config values:
      - ckanext.push_errors.url: The URL to push the message
@@ -56,12 +58,13 @@ def push_message(message, extra_context={}):
         'ckan_version': ckan_version,
         'push_errors_version': push_errors_version,
         'now': datetime.now().isoformat(),
+        'user': current_user.name if current_user else '-',
     }
     # Add extra context vars
     ctx.update(extra_context)
 
     # Set the title for the message
-    default_title = 'PUSH_ERROR *{site_url}* \nv{push_errors_version} - CKAN {ckan_version}\n{now}\n'
+    default_title = 'PUSH_ERROR *{site_url}* \nv{push_errors_version} - CKAN {ckan_version}\n{now} user: {user}\n'
     title = toolkit.config.get('ckanext.push_errors.title', default_title)
 
     message = title.format(**ctx) + "\n" + message

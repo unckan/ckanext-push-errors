@@ -23,8 +23,8 @@ Compatibility with core CKAN versions:
 To install ckanext-push-errors:
 
 ```bash
-pip install -e git+https://github.com/unckan/ckanext-push-errors.git@0.1.0#egg=ckanext-superset
-pip install -r https://raw.githubusercontent.com/unckan/ckanext-push-errors/refs/tags/0.1.0/requirements.txt
+pip install -e git+https://github.com/unckan/ckanext-push-errors.git@TAG-VERSION#egg=ckanext-superset
+pip install -r https://raw.githubusercontent.com/unckan/ckanext-push-errors/refs/tags/TAG-VERSION/requirements.txt
 ```
 
 Then add `push_errors` to the `ckan.plugins` setting in your CKAN config file.  

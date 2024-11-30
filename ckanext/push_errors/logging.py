@@ -53,7 +53,6 @@ def push_message(message, extra_context={}):
     # Context vars
     ctx = {
         'site_url': toolkit.config.get('ckan.site_url'),  # For user to know the environment (if multiple)
-        'message': message,  # The message itself, it could include tracebacks
         'ckan_version': ckan_version,
         'push_errors_version': push_errors_version,
         'now': datetime.now().isoformat(),
@@ -65,7 +64,8 @@ def push_message(message, extra_context={}):
     default_title = 'PUSH_ERROR v{push_errors_version} - CKAN {ckan_version}\n{now}\n\n'
     title = toolkit.config.get('ckanext.push_errors.title', default_title)
 
-    message = title.format(**ctx) + message
+    message = title.format(**ctx) + "\n" + message
+    ctx['message'] = message
 
     method = toolkit.config.get('ckanext.push_errors.method', 'POST')
     # Allow multiple headers in config
@@ -97,5 +97,9 @@ def push_message(message, extra_context={}):
         log.error('push-errors Invalid method')
         return
 
-    log.info(f'push-errors message sent {response.status_code} {response.text}')
+    if response.status_code not in (200, 201):
+        log.error(f'push-errors message NOT sent {response.status_code} {response.text}\n\tDATA: {data}\n\tHEADERS: {headers}')
+    else:
+        log.info(f'push-errors message sent {response.status_code} {response.text}')
+
     return response

@@ -31,7 +31,6 @@ class PushErrorsPlugin(plugins.SingletonPlugin):
 
         # Add to the app
         if hasattr(app, 'logger'):
-            log.info(f'PUSH_ERROR Adding push_error_handler to {app}')
             app.logger.addHandler(push_error_handler)
 
         def error_handler(exception):
@@ -44,9 +43,10 @@ class PushErrorsPlugin(plugins.SingletonPlugin):
                 )
 
                 if type(exception) in skip_types_if_anon:
+                    log.info(f' --- Skipping push error {exception}')
                     return
 
-            exception = f'{exception} [({type(exception).__name__})]'
+            exception_str = f'{exception} [({type(exception).__name__})]'
             # get the stacktrace
             import traceback
             trace = traceback.format_exc()
@@ -56,12 +56,14 @@ class PushErrorsPlugin(plugins.SingletonPlugin):
             user = current_user.name if current_user else '-'
 
             error_message = (
-                f'INTERNAL_ERROR `{exception}` \n\t'
+                f'INTERNAL_ERROR `{exception_str}` \n\t'
                 f'TRACE\n```{trace}```\n\t'
                 f'on page {path}\n\t'
                 f'by user *{user}*'
             )
             push_message(error_message)
+            # Continue to raise the error
+            raise exception
 
         if hasattr(app, 'register_error_handler'):
             app.register_error_handler(Exception, error_handler)

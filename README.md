@@ -28,6 +28,7 @@ pip install -r https://raw.githubusercontent.com/unckan/ckanext-push-errors/refs
 ```
 
 Then add `push_errors` to the `ckan.plugins` setting in your CKAN config file.  
+**IMPORTANT**: Add the `push_errors` plugin as the first one in the list to ensure that all errors are captured.  
 
 ## Config settings
 
@@ -54,6 +55,7 @@ Then use the following settings:
 To create a webhook in Slack:
  - Create a new channel if you want to send this notifications to a new channel. If not, you can use any existing channel.
  - Good look with this incredible complex way to create a webhook: https://api.slack.com/messaging/webhooks
+ - Probably going to https://api.slack.com/apps/YOUR-APP-ID/incoming-webhooks URL will help you.
 
 ## Tests
 

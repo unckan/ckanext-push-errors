@@ -83,7 +83,7 @@ def push_message(message, extra_context={}):
     try:
         data = json.loads(data)
     except json.JSONDecodeError:
-        log.error('push-errors Invalid data')
+        log.error(f'push-errors Invalid data: {data}')
         return
     # Override each data value with the context
     for key, value in data.items():
@@ -97,4 +97,5 @@ def push_message(message, extra_context={}):
         log.error('push-errors Invalid method')
         return
 
+    log.info(f'push-errors message sent {response.status_code} {response.text}')
     return response

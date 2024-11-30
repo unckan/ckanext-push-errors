@@ -6,6 +6,9 @@ from ckan.plugins import toolkit
 from ckanext.push_errors.logging import PushErrorHandler, push_message
 
 
+log = logging.getLogger(__name__)
+
+
 class PushErrorsPlugin(plugins.SingletonPlugin):
     plugins.implements(plugins.IMiddleware, inherit=True)
 
@@ -19,14 +22,17 @@ class PushErrorsPlugin(plugins.SingletonPlugin):
         # Prepare and add the PushErrorHandler
         push_error_handler = PushErrorHandler()
         push_error_handler.setLevel(logging.ERROR)
-        # Add to the flask app
-        app.logger.addHandler(push_error_handler)
         # Add to the ckan logger
         ckan_log = logging.getLogger('ckan')
         ckan_log.addHandler(push_error_handler)
         # Add to the ckanext logger for all extensions
         ckanext_log = logging.getLogger('ckanext')
         ckanext_log.addHandler(push_error_handler)
+
+        # Add to the app
+        if hasattr(app, 'logger'):
+            log.info(f'PUSH_ERROR Adding push_error_handler to {app}')
+            app.logger.addHandler(push_error_handler)
 
         def error_handler(exception):
 
@@ -57,6 +63,7 @@ class PushErrorsPlugin(plugins.SingletonPlugin):
             )
             push_message(error_message)
 
-        app.register_error_handler(Exception, error_handler)
+        if hasattr(app, 'register_error_handler'):
+            app.register_error_handler(Exception, error_handler)
 
         return app

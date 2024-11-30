@@ -10,28 +10,16 @@ log = logging.getLogger(__name__)
 
 
 class PushErrorsPlugin(plugins.SingletonPlugin):
-    plugins.implements(plugins.IMiddleware, inherit=True)
+    plugins.implements(plugins.IMiddleware)
 
     # IMiddleware
 
     def make_middleware(self, app, config):
-        """ Allow this extension to track all CRITICAL logs for all extension and CKAN core
-            Also, capture Flask errors and push them to an external URL
-        """
+        """ Allow this extension to capture request errors and push them to an external URL """
 
-        # Prepare and add the PushErrorHandler
-        push_error_handler = PushErrorHandler()
-        push_error_handler.setLevel(logging.ERROR)
-        # Add to the ckan logger
-        ckan_log = logging.getLogger('ckan')
-        ckan_log.addHandler(push_error_handler)
-        # Add to the ckanext logger for all extensions
-        ckanext_log = logging.getLogger('ckanext')
-        ckanext_log.addHandler(push_error_handler)
-
-        # Add to the app
-        if hasattr(app, 'logger'):
-            app.logger.addHandler(push_error_handler)
+        if not hasattr(app, 'register_error_handler'):
+            log.info(f'PUSH_ERRORS The app {app} has no register_error_handler')
+            return app
 
         def error_handler(exception):
 
@@ -43,7 +31,6 @@ class PushErrorsPlugin(plugins.SingletonPlugin):
                 )
 
                 if type(exception) in skip_types_if_anon:
-                    log.info(f' --- Skipping push error {exception}')
                     return
 
             exception_str = f'{exception} [({type(exception).__name__})]'
@@ -65,7 +52,28 @@ class PushErrorsPlugin(plugins.SingletonPlugin):
             # Continue to raise the error
             raise exception
 
-        if hasattr(app, 'register_error_handler'):
-            app.register_error_handler(Exception, error_handler)
+        app.register_error_handler(Exception, error_handler)
+
+        return app
+
+    def make_error_log_middleware(self, app, config):
+        """ Capture all log.critical messages """
+
+        # Prepare and add the PushErrorHandler
+        push_error_handler = PushErrorHandler()
+        push_error_handler.setLevel(logging.ERROR)
+
+        # Add to the ckan logger
+        ckan_log = logging.getLogger('ckan')
+        ckan_log.addHandler(push_error_handler)
+        # Add to the ckanext logger for all extensions
+        ckanext_log = logging.getLogger('ckanext')
+        ckanext_log.addHandler(push_error_handler)
+
+        if not hasattr(app, 'logger'):
+            log.info(f'PUSH_ERRORS The app {app} has no logger')
+        else:
+            # Add to the app. TODO.Investigate if this is needed
+            app.logger.addHandler(push_error_handler)
 
         return app

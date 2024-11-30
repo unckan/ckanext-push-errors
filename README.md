@@ -49,8 +49,8 @@ Then use the following settings:
 
  - `ckanext.push_errors.url=https://hooks.slack.com/services/T02XXXXXX/B061XXXXXX/GASXXXxxxXXXxxx` (something like this).
  - `ckanext.push_errors.method=POST`:
- - `ckanext.push_errors.headers="{}"`
- - `ckanext.push_errors.data='{"text": "{message}", "username": "CKAN PUSH ERRORS", "icon_url": "https://github.com/unckan/ckanext-push-errors/raw/main/icons/server-error.png"}'`: Slack requires the `text` field to be present.
+ - `ckanext.push_errors.headers={}`
+ - `ckanext.push_errors.data={"text": "{message}", "username": "CKAN PUSH ERRORS", "icon_url": "https://github.com/unckan/ckanext-push-errors/raw/main/icons/server-error.png"}`: Slack requires the `text` field to be present.
 
 To create a webhook in Slack:
  - Create a new channel if you want to send this notifications to a new channel. If not, you can use any existing channel.

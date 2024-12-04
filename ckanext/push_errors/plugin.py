@@ -4,7 +4,7 @@ from ckan import plugins
 from ckan.common import current_user
 from ckan.plugins import toolkit
 from ckanext.push_errors.logging import PushErrorHandler, push_message
-from ckanext.push_errors.cli import push_errors
+from ckanext.push_errors.cli import push_errors as push_errors_commands
 
 
 log = logging.getLogger(__name__)
@@ -83,4 +83,4 @@ class PushErrorsPlugin(plugins.SingletonPlugin):
     # IClick
 
     def get_commands(self):
-        return [push_errors]
+        return [push_errors_commands]

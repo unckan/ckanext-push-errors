@@ -3,8 +3,8 @@ from ckanext.push_errors.logging import push_message
 
 
 @click.command('push-message', short_help='Push message')
-@click.option('-m,', '--message', help='Message to be pushed')
-def send_reports(message):
+@click.option('--message', '-m', help='Message to be pushed')
+def push_message_cli(message):
     """ Push a message """
 
     click.secho('Pusshing message ...', fg='green')

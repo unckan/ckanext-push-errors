@@ -24,6 +24,16 @@ class PushErrorsPlugin(plugins.SingletonPlugin):
             return app
 
         def error_handler(exception):
+            import traceback
+
+            # Registrar todos los parámetros de la solicitud
+            params = toolkit.request.params if toolkit.request else '-'
+            log.info(f"Request parameters: {params}")
+
+            # Manejar el `resource_id` o su equivalente
+            resource_id = params.get("resource_id") if params != '-' else None
+            if not resource_id:
+                resource_id = params.get("id")
 
             if not current_user:
                 # ignore 401, 403 and 404 errors if no user is logged in
@@ -37,7 +47,6 @@ class PushErrorsPlugin(plugins.SingletonPlugin):
 
             exception_str = f'{exception} [({type(exception).__name__})]'
             # get the stacktrace
-            import traceback
             trace = traceback.format_exc()
             # Limit the max trace length
             trace = trace[-4000:]
@@ -48,6 +57,8 @@ class PushErrorsPlugin(plugins.SingletonPlugin):
                 f'INTERNAL_ERROR `{exception_str}` \n\t'
                 f'TRACE\n```{trace}```\n\t'
                 f'on page {path}\n\t'
+                f'resource_id: {resource_id}\n\t'
+                f'params: {params}\n\t'
                 f'by user *{user}*'
             )
             push_message(error_message)

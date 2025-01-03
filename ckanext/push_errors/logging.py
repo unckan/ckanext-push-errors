@@ -47,10 +47,13 @@ def push_message(message, extra_context={}):
     """
 
     url = toolkit.config.get('ckanext.push_errors.url')
-
+    # Si no hay URL configurada, registra el mensaje en los logs
     if not url:
-        log.error('No push-errors defined')
+        log.warning('push-errors: No URL configured, logging message locally.')
+        log.error(f'Local error log: {message}')
         return
+
+    log.info(f'push-errors Sending message to {url}')
 
     # Context vars
     ctx = {
@@ -92,17 +95,21 @@ def push_message(message, extra_context={}):
     for key, value in data.items():
         data[key] = value.format(**ctx)
 
-    if method == 'POST':
-        response = requests.post(url, json=data, headers=headers)
-    elif method == 'GET':
-        response = requests.get(url, params=data, headers=headers)
-    else:
-        log.error('push-errors Invalid method')
-        return
+    try:
+        if method == 'POST':
+            response = requests.post(url, json=data, headers=headers)
+        elif method == 'GET':
+            response = requests.get(url, params=data, headers=headers)
+        else:
+            log.error('push-errors Invalid method')
+            return
 
-    if response.status_code not in (200, 201):
-        log.error(f'push-errors message NOT sent {response.status_code} {response.text}\n\tDATA: {data}\n\tHEADERS: {headers}')
-    else:
-        log.info(f'push-errors message sent {response.status_code} {response.text}')
+        if response.status_code not in (200, 201):
+            e = (f'push-errors message NOT sent{response.status_code} {response.text}\n\tDATA: {data}\n\tHEADERS: {headers}')
+            log.error(e)
+        else:
+            log.info(f'push-errors message sent {response.status_code} {response.text}')
+    except Exception as e:
+        log.error(f'push-errors: Failed to send message to {url}. Exception: {str(e)}')
 
     return response

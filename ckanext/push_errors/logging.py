@@ -47,13 +47,6 @@ def push_message(message, extra_context={}):
     """
 
     url = toolkit.config.get('ckanext.push_errors.url')
-    # Si no hay URL configurada, registra el mensaje en los logs
-    if not url:
-        log.warning('push-errors: No URL configured, logging message locally.')
-        log.error(f'Local error log: {message}')
-        return
-
-    log.info(f'push-errors Sending message to {url}')
 
     # Context vars
     ctx = {
@@ -70,21 +63,31 @@ def push_message(message, extra_context={}):
     default_title = 'PUSH_ERROR *{site_url}* \nv{push_errors_version} - CKAN {ckan_version}\n{now} user: {user}\n'
     title = toolkit.config.get('ckanext.push_errors.title', default_title)
 
-    message = title.format(**ctx) + "\n" + message
-    ctx['message'] = message
+    formated_message = title.format(**ctx) + "\n" + message
+    ctx['message'] = formated_message
 
-    method = toolkit.config.get('ckanext.push_errors.method', 'POST')
+    # Si no hay URL configurada, registra el mensaje en los logs
+    if not url:
+        log.warning('push-errors: No URL configured, logging message locally.')
+        log.error(f'Local error log: {formated_message}')
+        return
+
+    log.info(f'push-errors Sending message to {url}')
+
     # Allow multiple headers in config
+    # Decoding headers
     headers_str = toolkit.config.get('ckanext.push_errors.headers', '{}')
     try:
         headers = json.loads(headers_str)
     except json.JSONDecodeError:
         log.error('push-errors Invalid headers')
         return
+
     # Override each header value with the context
     for key, value in headers.items():
         headers[key] = value.format(**ctx)
 
+    # Decoding data
     data = toolkit.config.get('ckanext.push_errors.data', '{}')
     try:
         data = json.loads(data)
@@ -95,21 +98,25 @@ def push_message(message, extra_context={}):
     for key, value in data.items():
         data[key] = value.format(**ctx)
 
+    # Sending request
+    method = toolkit.config.get('ckanext.push_errors.method', 'POST')
     try:
         if method == 'POST':
             response = requests.post(url, json=data, headers=headers)
         elif method == 'GET':
             response = requests.get(url, params=data, headers=headers)
         else:
-            log.error('push-errors Invalid method')
+            log.error('push-errors: Invalid method')
             return
-
-        if response.status_code not in (200, 201):
-            e = (f'push-errors message NOT sent{response.status_code} {response.text}\n\tDATA: {data}\n\tHEADERS: {headers}')
-            log.error(e)
-        else:
-            log.info(f'push-errors message sent {response.status_code} {response.text}')
-    except Exception as e:
+    except requests.RequestException as e:
         log.error(f'push-errors: Failed to send message to {url}. Exception: {str(e)}')
+        return
+
+    # Validating response
+    if response.status_code not in (200, 201):
+        e = (f'push-errors message NOT sent{response.status_code} {response.text}\n\tDATA: {data}\n\tHEADERS: {headers}')
+        log.error(e)
+    else:
+        log.info(f'push-errors message sent {response.status_code} {response.text}')
 
     return response

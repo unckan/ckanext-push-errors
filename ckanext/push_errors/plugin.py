@@ -6,7 +6,6 @@ from ckan.common import current_user
 from ckan.plugins import toolkit
 from ckanext.push_errors.logging import PushErrorHandler, push_message
 from ckanext.push_errors.cli import push_errors as push_errors_commands
-from flask import request
 
 
 log = logging.getLogger(__name__)
@@ -46,22 +45,7 @@ class PushErrorsPlugin(plugins.SingletonPlugin):
             path = toolkit.request.path if toolkit.request else '-'
             user = current_user.name if current_user else '-'
 
-            # Extract parameters from the request
-            try:
-                query_params = dict(request.args)
-                body_params = request.get_json(silent=True) or {}
-            except Exception as e:
-                log.warning(f"Error extracting request params: {e}")
-                query_params = {}
-                body_params = {}
-
-            # Prepare additional context
-            additional_context = {
-                "path": path,
-                "query_params": query_params,
-                "body_params": body_params,
-                "user": user
-            }
+            query_params = dict(toolkit.request.args)
 
             error_message = (
                 f'INTERNAL_ERROR `{exception_str}` \n\t'
@@ -70,9 +54,8 @@ class PushErrorsPlugin(plugins.SingletonPlugin):
                 f'params: {params}\n\t'
                 f'by user *{user}*\n\t'
                 f'QUERY_PARAMS: {query_params}\n\t'
-                f'BODY_PARAMS: {body_params}'
             )
-            push_message(error_message, extra_context=additional_context)
+            push_message(error_message)
             # Continue to raise the error
             raise exception
 

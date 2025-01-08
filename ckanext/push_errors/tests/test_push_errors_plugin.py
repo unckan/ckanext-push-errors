@@ -90,3 +90,39 @@ def test_push_message(mock_config):
         mock_req.assert_called_once()
         assert mock_req.call_args[0][0] == 'http://mock-url.com'  # URL
         assert mock_req.call_args[0][1] == 'POST'  # Método
+
+
+def test_error_message_is_generated(mock_app, mock_config, plugin):
+    """Prueba que el error_message se genera correctamente."""
+    # Simula el entorno de CKAN
+    with patch('ckanext.push_errors.plugin.current_user', new=MagicMock()) as mock_user, \
+         patch('ckanext.push_errors.plugin.push_message') as mock_push_message, \
+         patch('ckan.plugins.toolkit.request', new=MagicMock()) as mock_request:
+        # Configura current_user simulado
+        mock_user.name = 'test_user'
+
+        # Configura la solicitud simulada
+        mock_request.path = '/test-path'
+        mock_request.args = {'param1': 'value1'}
+
+        # Registra el middleware
+        plugin.make_middleware(mock_app, {})
+        error_handler = mock_app.register_error_handler.call_args[0][1]
+
+        # Simula una excepción
+        exception = InternalServerError("Test exception")
+        try:
+            error_handler(exception)
+        except InternalServerError:
+            pass
+
+        # Verifica que push_message fue llamado con el error_message correcto
+        mock_push_message.assert_called_once()
+        error_message = mock_push_message.call_args[0][0]
+
+        # Verifica el contenido de error_message
+        assert "INTERNAL_ERROR `500 Internal Server Error: Test exception [(InternalServerError)]`" in error_message
+        assert "TRACE\n```NoneType: None\n```" in error_message  # Cambia según el contenido esperado del stacktrace
+        assert "on page /test-path" in error_message
+        assert "by user *test_user*" in error_message
+        assert "QUERY_PARAMS: {'param1': 'value1'}" in error_message

@@ -68,8 +68,8 @@ def push_message(message, extra_context={}):
 
     if not url:
         log.warning('push-errors: No URL configured, logging message locally.')
-
-    log.info(f'push-errors Sending message to {url}')
+    else:
+        log.debug(f'push-errors Sending message to {url}')
 
     # Allow multiple headers in config
     # Decoding headers
@@ -98,13 +98,7 @@ def push_message(message, extra_context={}):
     # Sending request
     method = toolkit.config.get('ckanext.push_errors.method', 'POST')
     try:
-        if method == 'POST':
-            response = requests.post(url, json=data, headers=headers)
-        elif method == 'GET':
-            response = requests.get(url, params=data, headers=headers)
-        else:
-            log.error('push-errors: Invalid method')
-            return
+        response = send_message_to_url(url, headers, data, method)
     except requests.RequestException as e:
         log.error(f'push-errors: Failed to send message to {url}. Exception: {str(e)}')
         return
@@ -115,5 +109,29 @@ def push_message(message, extra_context={}):
         log.error(e)
     else:
         log.info(f'push-errors message sent {response.status_code} {response.text}')
+
+    return response
+
+
+def send_message_to_url(url, headers={}, data={}, method='POST'):
+    """
+    Send a message to a URL (if any)
+    """
+    if not url:
+        # Emulate and log the message
+        msg = (
+            'push-errors message not sent: No URL configured'
+            f'\n\tDATA: {data}\n\tHEADERS: {headers}'
+        )
+        log.error(msg)
+        return
+
+    if method == 'POST':
+        response = requests.post(url, json=data, headers=headers)
+    elif method == 'GET':
+        response = requests.get(url, params=data, headers=headers)
+    else:
+        log.error('push-errors: Invalid method')
+        return
 
     return response

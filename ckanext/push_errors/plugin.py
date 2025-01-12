@@ -1,4 +1,5 @@
 import logging
+import traceback
 from werkzeug.exceptions import Forbidden, Unauthorized, NotFound
 from ckan import plugins
 from ckan.common import current_user
@@ -37,10 +38,10 @@ class PushErrorsPlugin(plugins.SingletonPlugin):
 
             exception_str = f'{exception} [({type(exception).__name__})]'
             # get the stacktrace
-            import traceback
             trace = traceback.format_exc()
             # Limit the max trace length
             trace = trace[-4000:]
+            params = toolkit.request.args if toolkit.request else '-'
             path = toolkit.request.path if toolkit.request else '-'
             user = current_user.name if current_user else '-'
 
@@ -48,6 +49,7 @@ class PushErrorsPlugin(plugins.SingletonPlugin):
                 f'INTERNAL_ERROR `{exception_str}` \n\t'
                 f'TRACE\n```{trace}```\n\t'
                 f'on page {path}\n\t'
+                f'params: {params}\n\t'
                 f'by user *{user}*'
             )
             push_message(error_message)

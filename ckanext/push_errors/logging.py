@@ -103,6 +103,9 @@ def push_message(message, extra_context={}):
         log.error(f'push-errors: Failed to send message to {url}. Exception: {str(e)}')
         return
 
+    if not response:
+        return
+
     # Validating response
     if response.status_code not in (200, 201):
         e = (f'push-errors message NOT sent{response.status_code} {response.text}\n\tDATA: {data}\n\tHEADERS: {headers}')

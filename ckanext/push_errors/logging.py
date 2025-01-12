@@ -108,7 +108,10 @@ def push_message(message, extra_context={}):
 
     # Validating response
     if response.status_code not in (200, 201):
-        e = (f'push-errors message NOT sent{response.status_code} {response.text}\n\tDATA: {data}\n\tHEADERS: {headers}')
+        e = (
+            f'push-errors message NOT sent{response.status_code} {response.text}\n\t'
+            f'DATA: {data}\n\tHEADERS: {headers}'
+        )
         log.error(e)
     else:
         log.info(f'push-errors message sent {response.status_code} {response.text}')

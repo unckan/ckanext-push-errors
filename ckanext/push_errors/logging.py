@@ -66,11 +66,8 @@ def push_message(message, extra_context={}):
     formated_message = title.format(**ctx) + "\n" + message
     ctx['message'] = formated_message
 
-    # Si no hay URL configurada, registra el mensaje en los logs
     if not url:
         log.warning('push-errors: No URL configured, logging message locally.')
-        log.error(f'Local error log: {formated_message}')
-        return
 
     log.info(f'push-errors Sending message to {url}')
 

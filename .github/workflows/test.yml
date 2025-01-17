@@ -5,7 +5,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        ckan_version: [2.10, 2.11]
+        ckan_version: ["2.10", 2.11]
     container:
       # The CKAN version tag of the Solr and Postgres containers should match
       # the one of the container the tests run on.

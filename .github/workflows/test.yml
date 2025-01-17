@@ -39,7 +39,7 @@ jobs:
 
     - name: Debug Matrix Version
     # Confirm the version of CKAN used in the job
-      run: echo "Using CKAN Version: ${{ matrix.ckan_version }}"
+      run: --- Using CKAN Version ${{ matrix.ckan_version }}
 
     - name: Install requirements
     # Install any extra requirements your extension has here (dev requirements, other extensions etc)

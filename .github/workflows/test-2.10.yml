@@ -3,19 +3,16 @@ on: [push, pull_request]
 jobs:
   test:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        ckan_version: ["2.10", 2.11]
     container:
       # The CKAN version tag of the Solr and Postgres containers should match
       # the one of the container the tests run on.
       # You can switch this base image with a custom image tailored to your project
-      image: ckan/ckan-dev:${{ matrix.ckan_version }}
+      image: ckan/ckan-dev:2.10
     services:
       solr:
-        image: ckan/ckan-solr:${{ matrix.ckan_version }}-solr9
+        image: ckan/ckan-solr:2.10-solr9
       postgres:
-        image: ckan/ckan-postgres-dev:${{ matrix.ckan_version }}
+        image: ckan/ckan-postgres-dev:2.10
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -33,21 +30,12 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-
-    - name: Debug Docker Environment
-      run: docker images
-
-    - name: Debug Matrix Version
-    # Confirm the version of CKAN used in the job
-      run: --- Using CKAN Version ${{ matrix.ckan_version }}
-
     - name: Install requirements
-    # Install any extra requirements your extension has here (dev requirements, other extensions etc)
+      # Install any extra requirements your extension has here (dev requirements, other extensions etc)
       run: |
         pip install -r requirements.txt
         pip install -r dev-requirements.txt
         pip install -e .
-
     - name: Setup extension
       # Extra initialization steps
       run: |

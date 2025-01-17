@@ -33,12 +33,20 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+
+    - name: Debug Docker Environment
+      run: docker images  # Verifica las imágenes disponibles
+
+    - name: Debug Matrix Version
+      run: echo "Using CKAN Version: ${{ matrix.ckan_version }}"  # Confirma la versión
+
     - name: Install requirements
-      # Install any extra requirements your extension has here (dev requirements, other extensions etc)
+    # Install any extra requirements your extension has here (dev requirements, other extensions etc)
       run: |
         pip install -r requirements.txt
         pip install -r dev-requirements.txt
         pip install -e .
+
     - name: Setup extension
       # Extra initialization steps
       run: |

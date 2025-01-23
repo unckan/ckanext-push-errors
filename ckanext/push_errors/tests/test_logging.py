@@ -8,7 +8,8 @@ def test_push_message_with_valid_config(mock_config):
     """Prueba el envío de mensajes con una configuración válida."""
     # Mockear datetime.now para que sea consistente
     fixed_time = datetime(2025, 1, 23, 14, 6, 38)
-    with patch("ckanext.push_errors.logging.datetime") as mock_datetime:
+    with patch("ckanext.push_errors.logging.datetime") as mock_datetime, \
+        patch("ckanext.push_errors.logging.ckan_version", new="2.11.1"):
         mock_datetime.now.return_value = fixed_time
         mock_datetime.side_effect = lambda *args, **kwargs: datetime(*args, **kwargs)
 

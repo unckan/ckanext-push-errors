@@ -1,7 +1,8 @@
 
 import pytest
 from unittest.mock import patch, ANY
-from werkzeug.exceptions import InternalServerError
+from werkzeug.exceptions import InternalServerError, Unauthorized, Forbidden, NotFound, InternalServerError
+
 
 
 def test_make_middleware(mock_app, plugin):
@@ -31,8 +32,19 @@ def test_error_handler(mock_app, plugin):
         assert "Test exception" in mock_push_message.call_args[0][0]
 
 
-@pytest.mark.parametrize("status_code,expected_call", [(401, False), (403, False), (404, False), (500, True)])
-def test_ignore_errors_for_anonymous(mock_app, plugin, status_code, expected_call):
+@pytest.mark.parametrize(
+    "exception_type,status_code,expected_call",
+    [
+        (Unauthorized, None, False),  # Tipo específico
+        (Forbidden, None, False),    # Tipo específico
+        (NotFound, None, False),     # Tipo específico
+        (Exception, 401, False),     # Código HTTP específico
+        (Exception, 403, False),     # Código HTTP específico
+        (Exception, 404, False),     # Código HTTP específico
+        (Exception, 500, True),      # Otro código HTTP no ignorado
+    ],
+)
+def test_ignore_errors_for_anonymous(mock_app, plugin, exception_type, status_code, expected_call):
     """Prueba que ciertos errores sean ignorados para usuarios anónimos."""
     with patch("ckanext.push_errors.plugin.push_message") as mock_push_message, \
          patch("ckanext.push_errors.plugin.current_user", new=None):
@@ -41,15 +53,19 @@ def test_ignore_errors_for_anonymous(mock_app, plugin, status_code, expected_cal
         plugin.make_middleware(mock_app, {})
         error_handler = mock_app.register_error_handler.call_args[0][1]
 
-        # Simular el manejo de una excepción con el código de estado especificado
-        exception = InternalServerError("Test exception") if status_code == 500 else Exception()
+        # Crear la excepción a manejar
+        exception = exception_type("Test exception")
+        if status_code:
+            exception.code = status_code  # Configurar el código de estado
+
+        # Manejar la excepción
         try:
             error_handler(exception)
-        except Exception:
+        except exception_type:
             pass
 
         # Verificar si se esperaba que el mensaje fuera enviado
         if expected_call:
-            mock_push_message.assert_called_once()
+            mock_push_message.assert_called_once_with(ANY)
         else:
             mock_push_message.assert_not_called()

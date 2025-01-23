@@ -1,6 +1,6 @@
 
 import pytest
-from unittest.mock import patch
+from unittest.mock import patch, ANY
 from werkzeug.exceptions import InternalServerError
 
 
@@ -9,7 +9,7 @@ def test_make_middleware(mock_app, plugin):
     # Llamar al método make_middleware
     plugin.make_middleware(mock_app, {})
     # Verificar que el handler de errores fue registrado correctamente
-    mock_app.register_error_handler.assert_called_once_with(Exception, pytest.anything())
+    mock_app.register_error_handler.assert_called_once_with(Exception, ANY)
 
 
 def test_error_handler(mock_app, plugin):

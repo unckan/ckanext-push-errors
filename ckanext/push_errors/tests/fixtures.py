@@ -18,9 +18,11 @@ def mock_config():
     with patch('ckan.plugins.toolkit.config') as config:
         config.get.side_effect = lambda key, default=None: {
             'ckanext.push_errors.url': 'http://mock-url.com',
+            'ckan.site_url': 'http://mock-site.com',
             'ckanext.push_errors.method': 'POST',
             'ckanext.push_errors.headers': '{"Authorization": "Bearer {site_url}"}',
             'ckanext.push_errors.data': '{"error": "{message}"}',
+            'ckanext.push_errors.title': '',
         }.get(key, default)
         yield config
 

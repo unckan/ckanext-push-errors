@@ -22,7 +22,7 @@ def mock_config():
             'ckanext.push_errors.method': 'POST',
             'ckanext.push_errors.headers': '{"Authorization": "Bearer {site_url}"}',
             'ckanext.push_errors.data': '{"error": "{message}"}',
-            'ckanext.push_errors.title': '',
+            # No configuramos explícitamente el título, para que use el default_title
         }.get(key, default)
         yield config
 

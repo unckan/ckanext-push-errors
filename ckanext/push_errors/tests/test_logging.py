@@ -1,7 +1,11 @@
 import requests
+import logging
 from datetime import datetime
 from unittest.mock import patch
 from ckanext.push_errors.logging import push_message
+from unittest.mock import ANY
+
+logging.basicConfig(level=logging.DEBUG)
 
 
 def test_push_message_with_valid_config(mock_config):
@@ -9,7 +13,7 @@ def test_push_message_with_valid_config(mock_config):
     # Mockear datetime.now para que sea consistente
     fixed_time = datetime(2025, 1, 23, 14, 6, 38)
     with patch("ckanext.push_errors.logging.datetime") as mock_datetime, \
-        patch("ckanext.push_errors.logging.ckan_version", new="2.11.1"):
+         patch("ckanext.push_errors.logging.ckan_version", new="2.11.1"):
         mock_datetime.now.return_value = fixed_time
         mock_datetime.side_effect = lambda *args, **kwargs: datetime(*args, **kwargs)
 
@@ -88,4 +92,38 @@ def test_push_message_with_network_error(mock_config):
         mock_log.error.assert_called_once_with(
             'push-errors: Failed to send message to http://mock-url.com. Exception: Network error'
         )
+        assert response is None
+
+
+def test_critical_error_logging():
+    """Prueba que los logs de nivel CRITICAL son enviados correctamente."""
+    with patch("ckanext.push_errors.logging.push_message") as mock_push_message:
+        log = logging.getLogger("ckan")
+
+        # Limpiar handlers para evitar múltiples llamadas
+        log.handlers = []
+
+        # Agregar el PushErrorHandler manualmente
+        from ckanext.push_errors.logging import PushErrorHandler
+        push_error_handler = PushErrorHandler()
+        log.addHandler(push_error_handler)
+
+        # Emitir un mensaje de error crítico
+        log.critical("This is a critical error!")
+
+        # Verificar que push_message fue llamado una sola vez
+        mock_push_message.assert_called_once_with(ANY)
+
+
+def test_push_message_invalid_http_method(mock_config):
+    """Prueba que un método HTTP inválido genera un error y no envía la solicitud."""
+    mock_config.get.side_effect = lambda key, default=None: (
+        'INVALID_METHOD' if key == 'ckanext.push_errors.method' else
+        'http://mock-url.com' if key == 'ckanext.push_errors.url' else
+        default
+    )
+
+    with patch("ckanext.push_errors.logging.log") as mock_log:
+        response = push_message("Test message")
+        mock_log.error.assert_called_once_with('push-errors: Invalid method')
         assert response is None

@@ -1,14 +1,23 @@
+import click
 import logging
 import traceback
+import redis
 from werkzeug.exceptions import Forbidden, Unauthorized, NotFound
 from ckan import plugins
 from ckan.common import current_user
 from ckan.plugins import toolkit
-from ckanext.push_errors.logging import PushErrorHandler, push_message
+from ckanext.push_errors.logging import PushErrorHandler, push_message, redis_client
 from ckanext.push_errors.cli import push_errors as push_errors_commands
 
 
 log = logging.getLogger(__name__)
+
+# Verificación inicial de la conexión a Redis
+try:
+    redis_client.ping()
+    log.info("push-errors: Conectado exitosamente a Redis.")
+except redis.exceptions.ConnectionError:
+    log.error("push-errors: No se pudo conectar a Redis. Verifica la configuración.")
 
 
 class PushErrorsPlugin(plugins.SingletonPlugin):
@@ -25,7 +34,7 @@ class PushErrorsPlugin(plugins.SingletonPlugin):
             return app
 
         def error_handler(exception):
-
+            """ Captura todos los errores de la aplicación """
             if not current_user:
                 # ignore 401, 403 and 404 errors if no user is logged in
                 skip_types_if_anon = (
@@ -85,4 +94,31 @@ class PushErrorsPlugin(plugins.SingletonPlugin):
     # IClick
 
     def get_commands(self):
-        return [push_errors_commands]
+        return [push_errors_commands, check_status_command]
+
+    def get_actions(self):
+        return {
+            'push_errors_enable': self.push_errors_enable,
+            'push_errors_disable': self.push_errors_disable,
+        }
+
+    def push_errors_enable(self, context, data_dict):
+        """Habilitar el envío de notificaciones"""
+        redis_client.set('push_errors:enabled', '1')
+        return {'status': 'enabled'}
+
+    def push_errors_disable(self, context, data_dict):
+        """Deshabilitar el envío de notificaciones"""
+        redis_client.set('push_errors:enabled', '0')
+        return {'status': 'disabled'}
+
+
+@click.command('push-errors-status', short_help='Verificar el estado de las notificaciones')
+def check_status_command():
+    status = redis_client.get('push_errors:enabled')
+    if status == b'1':
+        click.secho('Las notificaciones están HABILITADAS.', fg='green')
+    elif status == b'0':
+        click.secho('Las notificaciones están DESHABILITADAS.', fg='red')
+    else:
+        click.secho('El estado de las notificaciones es desconocido.', fg='yellow')

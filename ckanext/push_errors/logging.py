@@ -1,5 +1,6 @@
 import json
 import logging
+import redis
 from datetime import datetime
 from logging import Handler, CRITICAL
 import requests
@@ -10,6 +11,51 @@ from ckanext.push_errors import __VERSION__ as push_errors_version
 
 
 log = logging.getLogger(__name__)
+
+
+# Configuración de Redis
+redis_client = redis.StrictRedis(
+    host=toolkit.config.get('ckan.redis.url', 'redis_bcie'),
+    port=6379,
+    db=0
+)
+
+LIMIT_PER_MINUTE = 10  # Máximo de mensajes por minuto
+LIMIT_PER_HOUR = 100   # Máximo de mensajes por hora
+
+
+def can_send_message():
+    """
+    Verifica si se puede enviar una nueva notificación según los límites definidos.
+    """
+    current_minute = datetime.utcnow().strftime('%Y%m%d%H%M')
+    current_hour = datetime.utcnow().strftime('%Y%m%d%H')
+
+    # Claves para Redis
+    minute_key = f'push_errors:minute:{current_minute}'
+    hour_key = f'push_errors:hour:{current_hour}'
+
+    # Incrementar contadores
+    minute_count = redis_client.incr(minute_key)
+    hour_count = redis_client.incr(hour_key)
+
+    # Establecer expiración si es la primera vez
+    if minute_count == 1:
+        redis_client.expire(minute_key, 60)  # Expira en 60 segundos
+    if hour_count == 1:
+        redis_client.expire(hour_key, 3600)  # Expira en 1 hora
+
+    # Verificar límites
+    if minute_count > LIMIT_PER_MINUTE:
+        log.warning(f'push-errors: Límite por minuto excedido ({minute_count}/{LIMIT_PER_MINUTE})')
+        return False
+
+    # Solo aplicar límite por minuto si también estamos cerca del límite por hora
+    if hour_count > LIMIT_PER_HOUR:
+        log.warning(f'push-errors: Límite por hora excedido ({hour_count}/{LIMIT_PER_HOUR})')
+        return False
+
+    return True
 
 
 class PushErrorHandler(Handler):
@@ -45,6 +91,14 @@ def push_message(message, extra_context={}):
      - ckanext.push_errors.headers: A JSON string with the headers to send
      - ckanext.push_errors.data: A JSON string with the data to send
     """
+
+    if redis_client.get('push_errors:enabled') == b'0':
+        log.info('push-errors: Notificaciones deshabilitadas.')
+        return None
+
+    if not can_send_message():
+        log.info('push-errors: Mensaje no enviado por límite de notificaciones.')
+        return None
 
     url = toolkit.config.get('ckanext.push_errors.url')
 

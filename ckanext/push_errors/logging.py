@@ -60,8 +60,8 @@ def push_message(message, extra_context={}):
     ctx.update(extra_context)
 
     # Set the title for the message
-    default_title = 'PUSH_ERROR *{site_url}* \nv{push_errors_version} - CKAN {ckan_version}\n{now} user: {user}\n'
-    title = toolkit.config.get('ckanext.push_errors.title', default_title)
+    default_title = '{site_url} \nv{push_errors_version} - CKAN {ckan_version}\n{now} user: {user}\n'
+    title = toolkit.config.get('ckanext.push_errors.message_title', default_title)
 
     formated_message = title.format(**ctx) + "\n" + message
     ctx['message'] = formated_message
@@ -117,6 +117,7 @@ def push_message(message, extra_context={}):
         log.info(f'push-errors message sent {response.status_code} {response.text}')
 
     return response
+
 
 
 def send_message_to_url(url, headers={}, data={}, method='POST'):

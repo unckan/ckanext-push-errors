@@ -29,13 +29,24 @@ class PushErrorsPlugin(plugins.SingletonPlugin):
         def error_handler(exception):
             """ Capture all errors from the application """
             if not current_user:
-                # Ignore specific errors (401, 403, and 404) if no user is logged in
+                # When no user is logged in, we want to ignore certain exceptions that
+                # represent expected error scenarios, such as 401 (Unauthorized), 403 (Forbidden),
+                # and 404 (Not Found). These errors are typically not indicative of a system
+                # failure, but rather of access restrictions or missing resources.
+                #
+                # 'skip_types_if_anon' lists the specific exception classes that are known to be
+                # associated with these HTTP errors.
                 skip_types_if_anon = (
                     Unauthorized, Forbidden, NotFound,
                     toolkit.NotAuthorized, toolkit.ObjectNotFound,
                 )
 
-                # Check both the exception type and its HTTP code
+                # Additionally, some exceptions may not be one of the specific types but still carry
+                # an HTTP status code through a 'code' attribute. Here, we check if the exception has
+                # such an attribute and if its value is one of 401, 403, or 404.
+                #
+                # If the exception is either of a known type or has a matching HTTP code, we simply return
+                # the exception without further processing (for example, without sending an external error notification).
                 if type(exception) in skip_types_if_anon or (
                     hasattr(exception, 'code') and exception.code in {401, 403, 404}
                 ):

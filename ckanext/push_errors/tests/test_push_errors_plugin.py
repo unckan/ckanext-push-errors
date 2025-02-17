@@ -1,70 +1,60 @@
-
 import pytest
 from unittest.mock import patch, ANY, MagicMock
 from werkzeug.local import LocalProxy
 from werkzeug.exceptions import InternalServerError, Unauthorized, Forbidden, NotFound
 
 
+class CustomHTTPException(Exception):
+    def __init__(self, message, code):
+        super().__init__(message)
+        self.code = code
+
+
 def test_make_middleware(mock_app, plugin):
-    """Prueba que el middleware registre correctamente un handler de errores."""
-    # Llamar al método make_middleware
+    """Test that the middleware registers an error handler correctly."""
     plugin.make_middleware(mock_app, {})
-    # Verificar que el handler de errores fue registrado correctamente
     mock_app.register_error_handler.assert_called_once_with(Exception, ANY)
 
 
 def test_error_handler(mock_app, plugin):
-    """Prueba que el handler de errores maneje correctamente las excepciones."""
+    """Test that the error handler processes exceptions correctly."""
     with patch("ckanext.push_errors.plugin.push_message") as mock_push_message:
-        # Llamar al método make_middleware para registrar el handler de errores
-
         plugin.make_middleware(mock_app, {})
         error_handler = mock_app.register_error_handler.call_args[0][1]
 
-        # Simular el manejo de una excepción
         try:
             error_handler(InternalServerError("Test exception"))
         except InternalServerError:
             pass
 
-        # Verificar que el mensaje fue enviado correctamente
         mock_push_message.assert_called_once()
         assert "Test exception" in mock_push_message.call_args[0][0]
 
 
 @pytest.mark.parametrize(
-    "exception_type,status_code,expected_call",
+    "exception,expected_call",
     [
-        (Unauthorized, None, False),  # Tipo específico
-        (Forbidden, None, False),    # Tipo específico
-        (NotFound, None, False),     # Tipo específico
-        (Exception, 401, False),     # Código HTTP específico
-        (Exception, 403, False),     # Código HTTP específico
-        (Exception, 404, False),     # Código HTTP específico
-        (Exception, 500, True),      # Otro código HTTP no ignorado
+        (Unauthorized("Test exception"), False),         # Specific HTTP exception.
+        (Forbidden("Test exception"), False),            # Specific HTTP exception.
+        (NotFound("Test exception"), False),             # Specific HTTP exception.
+        (CustomHTTPException("Test exception", 401), False),  # Custom exception with HTTP code 401.
+        (CustomHTTPException("Test exception", 403), False),  # Custom exception with HTTP code 403.
+        (CustomHTTPException("Test exception", 404), False),  # Custom exception with HTTP code 404.
+        (CustomHTTPException("Test exception", 500), True),   # Custom exception with HTTP code 500.
     ],
 )
-def test_ignore_errors_for_anonymous(mock_app, plugin, exception_type, status_code, expected_call):
-    """Prueba que ciertos errores sean ignorados para usuarios anónimos."""
+def test_ignore_errors_for_anonymous(mock_app, plugin, exception, expected_call):
+    """Test that certain errors are ignored for anonymous users."""
     with patch("ckanext.push_errors.plugin.push_message") as mock_push_message, \
          patch("ckanext.push_errors.plugin.current_user", new=None):
-
-        # Llamar al método make_middleware para registrar el handler de errores
         plugin.make_middleware(mock_app, {})
         error_handler = mock_app.register_error_handler.call_args[0][1]
 
-        # Crear la excepción a manejar
-        exception = exception_type("Test exception")
-        if status_code:
-            exception.code = status_code  # Configurar el código de estado
-
-        # Manejar la excepción
         try:
             error_handler(exception)
-        except exception_type:
+        except type(exception):
             pass
 
-        # Verificar si se esperaba que el mensaje fuera enviado
         if expected_call:
             mock_push_message.assert_called_once_with(ANY)
         else:
@@ -78,7 +68,7 @@ def test_ignore_errors_for_anonymous(mock_app, plugin, exception_type, status_co
     InternalServerError("Internal error"),
 ])
 def test_middleware_handles_multiple_exceptions(mock_app, plugin, exception):
-    """Prueba que el middleware maneje diferentes excepciones correctamente."""
+    """Test that the middleware handles different exceptions correctly."""
     with patch("ckanext.push_errors.plugin.push_message") as mock_push_message:
         plugin.make_middleware(mock_app, {})
         error_handler = mock_app.register_error_handler.call_args[0][1]
@@ -88,7 +78,7 @@ def test_middleware_handles_multiple_exceptions(mock_app, plugin, exception):
         except type(exception):
             pass
 
-        # Si la excepción es 401, 403 o 404 y no hay usuario, no debería llamar push_message
+        # For HTTP errors 401, 403, 404 (or their corresponding exceptions), push_message should not be called.
         if isinstance(exception, (Unauthorized, Forbidden, NotFound)):
             mock_push_message.assert_not_called()
         else:
@@ -96,15 +86,14 @@ def test_middleware_handles_multiple_exceptions(mock_app, plugin, exception):
 
 
 def test_error_message_format(mock_app, plugin):
-    """Prueba que el mensaje de error generado tiene el formato esperado."""
+    """Test that the generated error message has the expected format."""
     with patch("ckanext.push_errors.plugin.push_message") as mock_push_message:
-
-        # Crear un mock de request simulando un LocalProxy
+        # Create a mock request simulating a LocalProxy.
         mock_request = MagicMock()
         mock_request.args = {"param1": "value1"}
         mock_request.path = "/some/path"
 
-        # Mockear el LocalProxy para que devuelva nuestro mock_request
+        # Patch the LocalProxy to return our mock_request.
         with patch("ckan.common.request", new=LocalProxy(lambda: mock_request)):
             plugin.make_middleware(mock_app, {})
             error_handler = mock_app.register_error_handler.call_args[0][1]
@@ -114,10 +103,9 @@ def test_error_message_format(mock_app, plugin):
             except InternalServerError:
                 pass
 
-            # Obtener el mensaje real enviado
+            # Retrieve the actual message sent.
             actual_message = mock_push_message.call_args[0][0]
-
-            # Verificar que partes clave del mensaje están contenidas
+            # Verify that key parts of the message are included.
             assert "INTERNAL_ERROR" in actual_message
             assert "Critical failure" in actual_message
             assert "InternalServerError" in actual_message

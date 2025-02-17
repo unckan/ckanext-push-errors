@@ -1,20 +1,18 @@
 import pytest
-from click.testing import CliRunner
 from ckanext.push_errors.cli.base import push_message_cli
 
 
-@pytest.mark.parametrize("message", ["Test message", "Another message"])
-def test_push_message_cli(message):
+@pytest.mark.ckan_config("ckanext.push_errors.url", "http://mock-url.com")
+@pytest.mark.ckan_config("ckan.site_url", "http://mock-site.com")
+@pytest.mark.ckan_config("ckanext.push_errors.method", "POST")
+@pytest.mark.ckan_config("ckanext.push_errors.headers", '{"Authorization": "Bearer {site_url}"}')
+@pytest.mark.ckan_config("ckanext.push_errors.data", '{"error": "{message}"}')
+def test_push_message_cli(cli):
     """
-    Test el comando CLI 'push-message'.
-    Verifique que el comando se ejecute correctamente y muestre el mensaje esperado.
+    Test the 'push-message' CLI command.
+    Verify that the command executes correctly and displays the expected output.
     """
-    # Inicializar el ejecutor de pruebas para los comandos Click
-    runner = CliRunner()
-    # Ejecutar el comando 'push-message' con el mensaje de prueba
-    result = runner.invoke(push_message_cli, ["--message", message])
-
-    # Verificar que el comando se ejecute correctamente y muestre el mensaje esperado
+    result = cli.invoke(push_message_cli, ["--message", "Test message"])
     assert result.exit_code == 0
     assert "Pusshing message ..." in result.output
-    assert f"Message: {message}" in result.output
+    assert "Message: Test message" in result.output

@@ -1,4 +1,3 @@
-import click
 import logging
 import traceback
 import redis
@@ -94,7 +93,7 @@ class PushErrorsPlugin(plugins.SingletonPlugin):
     # IClick
 
     def get_commands(self):
-        return [push_errors_commands, check_status_command]
+        return [push_errors_commands]
 
     def get_actions(self):
         return {
@@ -111,14 +110,3 @@ class PushErrorsPlugin(plugins.SingletonPlugin):
         """Deshabilitar el envío de notificaciones"""
         redis_client.set('push_errors:enabled', '0')
         return {'status': 'disabled'}
-
-
-@click.command('push-errors-status', short_help='Verificar el estado de las notificaciones')
-def check_status_command():
-    status = redis_client.get('push_errors:enabled')
-    if status == b'1':
-        click.secho('Las notificaciones están HABILITADAS.', fg='green')
-    elif status == b'0':
-        click.secho('Las notificaciones están DESHABILITADAS.', fg='red')
-    else:
-        click.secho('El estado de las notificaciones es desconocido.', fg='yellow')

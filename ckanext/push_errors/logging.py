@@ -1,6 +1,6 @@
 import json
 import logging
-import redis
+from redis import Redis, ConnectionPool
 from datetime import datetime
 from logging import Handler, CRITICAL
 import requests
@@ -14,14 +14,14 @@ log = logging.getLogger(__name__)
 
 
 # Configuración de Redis
-redis_client = redis.StrictRedis(
-    host=toolkit.config.get('ckan.redis.url', 'redis_bcie'),
-    port=6379,
-    db=0
-)
 
-LIMIT_PER_MINUTE = 10  # Máximo de mensajes por minuto
-LIMIT_PER_HOUR = 100   # Máximo de mensajes por hora
+redis_url = toolkit.config.get('ckan.redis.url', 'redis://localhost:6379/0')
+redis_pool = ConnectionPool.from_url(redis_url)
+redis_client = Redis(connection_pool=redis_pool)
+
+
+LIMIT_PER_MINUTE = int(toolkit.config.get('ckanext.push_errors.max_message_minute', 3))  # Default: 3
+LIMIT_PER_HOUR = int(toolkit.config.get('ckanext.push_errors.max_message_hour', 10))    # Default: 10
 
 
 def can_send_message():
@@ -92,7 +92,7 @@ def push_message(message, extra_context={}):
      - ckanext.push_errors.data: A JSON string with the data to send
     """
 
-    if redis_client.get('push_errors:enabled') == b'0':
+    if toolkit.asbool(toolkit.config.get('ckanext.push_errors.enabled', True)) is False:
         log.info('push-errors: Notificaciones deshabilitadas.')
         return None
 

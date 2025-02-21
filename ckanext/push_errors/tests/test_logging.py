@@ -3,6 +3,7 @@ import logging
 from datetime import datetime
 from unittest.mock import patch, ANY
 from ckanext.push_errors.logging import push_message, PushErrorHandler
+from ckanext.push_errors import __VERSION__ as push_errors_version
 import pytest
 
 logging.basicConfig(level=logging.DEBUG)
@@ -26,7 +27,7 @@ class TestPushErrorLogging:
 
         default_title = (
             f'PUSH_ERROR *http://mock-site.com* \n'
-            f'v0.1.4 - CKAN 2.11.1\n{fixed_time.isoformat()} user: -\n'
+            f'v{push_errors_version} - CKAN 2.11.1\n{fixed_time.isoformat()} user: -\n'
         )
 
         # Simulate a successful server response.

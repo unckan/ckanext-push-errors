@@ -37,8 +37,10 @@ Available settings. Many of them can be formatted with context values:
  - `ckanext.push_errors.url=http://myserver.com`: The URL to push the message
  - `ckanext.push_errors.method=POST`: The method to use (POST or GET only)
  - `ckanext.push_errors.headers='{"Authorization": "Token 123"}'`: A JSON string with the headers to send
- - `ckanext.push_errors.data:'{"message": "{message}"}'`: A JSON string with the data to send
+ - `ckanext.push_errors.data='{"message": "{message}"}'`: A JSON string with the data to send
  - `ckanext.push_errors.title="PUSH_ERROR v{push_errors_version} - CKAN {ckan_version}\n{now}\n\n"`: The title (first part) of the message
+ - `ckanext.push_errors.max_message_minute=3`: The maximum number of messages to send in a minute
+ - `ckanext.push_errors.max_message_hour=10`: The maximum number of messages to send in an hour
 
 ### Config settings for known platforms
 

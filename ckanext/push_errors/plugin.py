@@ -14,7 +14,8 @@ log = logging.getLogger(__name__)
 
 # Initial check of the connection to Redis
 try:
-    get_cache.ping()
+    cache = get_cache()
+    cache.ping()
     log.info("push-errors: Successfully connected to Redis.")
 except redis.exceptions.ConnectionError:
     log.error("push-errors: Failed to connect to Redis. Please check your configuration.")
@@ -34,7 +35,7 @@ class PushErrorsPlugin(plugins.SingletonPlugin):
             return app
 
         def error_handler(exception):
-            """ Captura todos los errores de la aplicación """
+            """ Capture all errors from the application """
             if not current_user:
                 # ignore 401, 403 and 404 errors if no user is logged in
                 skip_types_if_anon = (
@@ -103,11 +104,15 @@ class PushErrorsPlugin(plugins.SingletonPlugin):
         }
 
     def push_errors_enable(self, context, data_dict):
-        """Habilitar el envío de notificaciones"""
-        get_cache.set('push_errors:enabled', '1')
+        """Enable the sending of notifications"""
+        cache = get_cache()
+        cache.set('push_errors:enabled', '1')
+        log.info("push-errors: Notifications enabled.")
         return {'status': 'enabled'}
 
     def push_errors_disable(self, context, data_dict):
-        """Deshabilitar el envío de notificaciones"""
-        get_cache.set('push_errors:enabled', '0')
+        """Disable the sending of notifications"""
+        cache = get_cache()
+        cache.set('push_errors:enabled', '0')
+        log.info("push-errors: Notifications disabled.")
         return {'status': 'disabled'}

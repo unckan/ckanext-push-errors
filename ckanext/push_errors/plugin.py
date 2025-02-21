@@ -5,18 +5,19 @@ from werkzeug.exceptions import Forbidden, Unauthorized, NotFound
 from ckan import plugins
 from ckan.common import current_user
 from ckan.plugins import toolkit
-from ckanext.push_errors.logging import PushErrorHandler, push_message, redis_client
+from ckanext.push_errors.logging import PushErrorHandler, push_message
+from ckanext.push_errors.redis import get_cache
 from ckanext.push_errors.cli import push_errors as push_errors_commands
 
 
 log = logging.getLogger(__name__)
 
-# Verificación inicial de la conexión a Redis
+# Initial check of the connection to Redis
 try:
-    redis_client.ping()
-    log.info("push-errors: Conectado exitosamente a Redis.")
+    get_cache.ping()
+    log.info("push-errors: Successfully connected to Redis.")
 except redis.exceptions.ConnectionError:
-    log.error("push-errors: No se pudo conectar a Redis. Verifica la configuración.")
+    log.error("push-errors: Failed to connect to Redis. Please check your configuration.")
 
 
 class PushErrorsPlugin(plugins.SingletonPlugin):
@@ -103,10 +104,10 @@ class PushErrorsPlugin(plugins.SingletonPlugin):
 
     def push_errors_enable(self, context, data_dict):
         """Habilitar el envío de notificaciones"""
-        redis_client.set('push_errors:enabled', '1')
+        get_cache.set('push_errors:enabled', '1')
         return {'status': 'enabled'}
 
     def push_errors_disable(self, context, data_dict):
         """Deshabilitar el envío de notificaciones"""
-        redis_client.set('push_errors:enabled', '0')
+        get_cache.set('push_errors:enabled', '0')
         return {'status': 'disabled'}

@@ -9,7 +9,7 @@ CKAN extension to push critical error to external URLs (like Slack).
 
 ## Requirements
 
-Youu'll requerie an external service to receive the messages. This service must be able to receive POST or GET requests.  
+You'll requerie an external service to receive the messages. This service must be able to receive POST or GET requests.  
 
 Compatibility with core CKAN versions:
 
@@ -38,7 +38,7 @@ Available settings. Many of them can be formatted with context values:
  - `ckanext.push_errors.url=http://myserver.com`: The URL to push the message
  - `ckanext.push_errors.method=POST`: The method to use (POST or GET only)
  - `ckanext.push_errors.headers='{"Authorization": "Token 123"}'`: A JSON string with the headers to send
- - `ckanext.push_errors.data:'{"message": "{message}"}'`: A JSON string with the data to send
+ - `ckanext.push_errors.data='{"message": "{message}"}'`: A JSON string with the data to send
  - `ckanext.push_errors.title="PUSH_ERROR v{push_errors_version} - CKAN {ckan_version}\n{now}\n\n"`: The title (first part) of the message
 
 ### Config settings for known platforms

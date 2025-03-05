@@ -1,5 +1,5 @@
-[![Tests CKAN 2.10](https://github.com/unckan/ckanext-push-errors/actions/workflows/workflows/Tests%20CKAN%202.10/badge.svg)](https://github.com/unckan/ckanext-push-errors/actions)
-[![Tests CKAN 2.11](https://github.com/unckan/ckanext-push-errors/actions/workflows/workflows/Tests%20CKAN%202.11/badge.svg)](https://github.com/unckan/ckanext-push-errors/actions)
+[![Tests CKAN 2.10](https://github.com/unckan/ckanext-push-errors/workflows/Tests%20CKAN%202.10/badge.svg)](https://github.com/unckan/ckanext-push-errors/actions/workflows/test-2.10.yml)
+[![Tests CKAN 2.11](https://github.com/unckan/ckanext-push-errors/workflows/Tests%20CKAN%202.11/badge.svg)](https://github.com/unckan/ckanext-push-errors/actions/workflows/test-2.11.yml)
 
 
 # ckanext-push-errors

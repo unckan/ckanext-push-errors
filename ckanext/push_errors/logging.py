@@ -141,3 +141,16 @@ def send_message_to_url(url, headers={}, data={}, method='POST'):
         return
 
     return response
+
+
+def req(data, headers, url, method):
+    """ Make a request to the URL with the data and headers """
+
+    if method == 'POST':
+        response = requests.post(url, json=data, headers=headers)
+    elif method == 'GET':
+        response = requests.get(url, params=data, headers=headers)
+    else:
+        log.error('push-errors Invalid method')
+        return
+    return response

@@ -45,12 +45,15 @@ class PushErrorsPlugin(plugins.SingletonPlugin):
             path = toolkit.request.path if toolkit.request else '-'
             user = current_user.name if current_user else '-'
 
+            query_params = dict(toolkit.request.args)
+
             error_message = (
                 f'INTERNAL_ERROR `{exception_str}` \n\t'
                 f'TRACE\n```{trace}```\n\t'
                 f'on page {path}\n\t'
                 f'params: {params}\n\t'
-                f'by user *{user}*'
+                f'by user *{user}*\n\t'
+                f'QUERY_PARAMS: {query_params}\n\t'
             )
             push_message(error_message)
             # Continue to raise the error

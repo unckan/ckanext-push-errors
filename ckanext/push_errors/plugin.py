@@ -94,11 +94,9 @@ class PushErrorsPlugin(plugins.SingletonPlugin):
 
     def get_blueprint(self):
         return [push_error_bp]
-    
+
     def get_actions(self):
         return {
             'push_errors_enable': push_errors_enable,
             'push_errors_disable': push_errors_disable,
         }
-
-

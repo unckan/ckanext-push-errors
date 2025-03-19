@@ -85,7 +85,7 @@ def push_message(message, extra_context={}):
     """
 
     if not can_send_message():
-        log.info('push-errors: Mensaje no enviado por límite de notificaciones.')
+        log.info('push-errors: Message not sent due to notification limit.')
         return None
 
     url = toolkit.config.get('ckanext.push_errors.url')

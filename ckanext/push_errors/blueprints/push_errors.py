@@ -4,10 +4,10 @@ from ckan.plugins import toolkit
 
 log = logging.getLogger(__name__)
 
-push_error_bp = Blueprint('push_errors', __name__)
+push_error_bp = Blueprint('push_errors', __name__, url_prefix='/push-error')
 
 
-@push_error_bp.route('/push-error/test')
+@push_error_bp.route('/test', methods=["GET"])
 def test_push_error():
     """
     A view function that logs a critical error message.

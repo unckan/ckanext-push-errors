@@ -85,7 +85,7 @@ def push_message(message, extra_context={}):
         headers[key] = value.format(**ctx)
 
     # Decoding data
-    data = toolkit.config.get('ckanext.push_errors.data', '{}') or '{}'
+    data = toolkit.config.get('ckanext.push_errors.data', '{}')
     try:
         data = json.loads(data)
     except json.JSONDecodeError:

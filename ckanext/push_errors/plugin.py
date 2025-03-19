@@ -43,13 +43,6 @@ class PushErrorsPlugin(plugins.SingletonPlugin):
                 if isinstance(exception, skip_types_if_anon):
                     return None
 
-                # Some exceptions may have an HTTP status code in a 'code' attribute.
-                # Use getattr to safely access it and skip if it's 401, 403, or 404.
-                http_status_codes_to_skip = {401, 403, 404}
-                exception_code = getattr(exception, 'code', None)
-                if exception_code in http_status_codes_to_skip:
-                    return None
-
             exception_str = f'{exception} [({type(exception).__name__})]'
             # get the stacktrace
             trace = traceback.format_exc()

@@ -8,6 +8,7 @@ from ckanext.push_errors.logging import PushErrorHandler, push_message
 from ckanext.push_errors.actions.push_errors import push_errors_enable, push_errors_disable
 from ckanext.push_errors.cli import push_errors as push_errors_commands
 
+from ckanext.push_errors.blueprints.push_errors import push_error_bp
 
 log = logging.getLogger(__name__)
 
@@ -15,6 +16,7 @@ log = logging.getLogger(__name__)
 class PushErrorsPlugin(plugins.SingletonPlugin):
     plugins.implements(plugins.IClick)
     plugins.implements(plugins.IMiddleware)
+    plugins.implements(plugins.IBlueprint)
 
     # IMiddleware
 
@@ -88,8 +90,15 @@ class PushErrorsPlugin(plugins.SingletonPlugin):
     def get_commands(self):
         return [push_errors_commands]
 
+    # IBlueprint
+
+    def get_blueprint(self):
+        return [push_error_bp]
+    
     def get_actions(self):
         return {
             'push_errors_enable': push_errors_enable,
             'push_errors_disable': push_errors_disable,
         }
+
+

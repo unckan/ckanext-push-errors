@@ -1,4 +1,5 @@
-[![Tests](https://github.com/unckan/ckanext-push-errors/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/unckan/ckanext-push-errors/actions)
+[![Tests CKAN 2.10](https://github.com/unckan/ckanext-push-errors/workflows/Tests%20CKAN%202.10/badge.svg)](https://github.com/unckan/ckanext-push-errors/actions/workflows/test-2.10.yml)
+[![Tests CKAN 2.11](https://github.com/unckan/ckanext-push-errors/workflows/Tests%20CKAN%202.11/badge.svg)](https://github.com/unckan/ckanext-push-errors/actions/workflows/test-2.11.yml)
 
 
 # ckanext-push-errors
@@ -8,7 +9,7 @@ CKAN extension to push critical error to external URLs (like Slack).
 
 ## Requirements
 
-Youu'll requerie an external service to receive the messages. This service must be able to receive POST or GET requests.  
+You'll requerie an external service to receive the messages. This service must be able to receive POST or GET requests.  
 
 Compatibility with core CKAN versions:
 

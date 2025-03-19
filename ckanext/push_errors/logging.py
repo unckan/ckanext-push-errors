@@ -73,7 +73,7 @@ def push_message(message, extra_context={}):
 
     # Allow multiple headers in config
     # Decoding headers
-    headers_str = toolkit.config.get('ckanext.push_errors.headers', '{}') or '{}'
+    headers_str = toolkit.config.get('ckanext.push_errors.headers', '{}')
     try:
         headers = json.loads(headers_str)
     except json.JSONDecodeError:

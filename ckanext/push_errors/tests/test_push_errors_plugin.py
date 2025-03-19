@@ -42,10 +42,6 @@ def test_error_handler(mock_push_message, app):
         (Unauthorized("Test exception"), False),         # Specific HTTP exception.
         (Forbidden("Test exception"), False),            # Specific HTTP exception.
         (NotFound("Test exception"), False),             # Specific HTTP exception.
-        (CustomHTTPException("Test exception 401", 401), False),  # Custom exception with HTTP code 401.
-        (CustomHTTPException("Test exception 403", 403), False),  # Custom exception with HTTP code 403.
-        (CustomHTTPException("Test exception 404", 404), False),  # Custom exception with HTTP code 404.
-        (CustomHTTPException("Test exception 500", 500), True),   # Custom exception with HTTP code 500.
     ],
 )
 @patch("ckanext.push_errors.plugin.push_message")

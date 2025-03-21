@@ -26,14 +26,13 @@ class TestPushErrorView:
         Test that a 403 response is returned when no user is logged in
         """
         mock_toolkit.g.userobj = None
-        mock_toolkit._ = lambda x: x  # simula traducción
-        mock_toolkit.abort.side_effect = Exception("403 - Unauthorized")
+        mock_toolkit._ = lambda x: x  # Simula traducción
 
         with app.test_client() as client:
-            with pytest.raises(Exception, match="403 - Unauthorized"):
-                client.get('/push-error/test')
+            response = client.get('/push-error/test')
 
-        mock_toolkit.abort.assert_called_once_with(403, 'Unauthorized to access this page')
+        assert response.status_code == 403
+        assert b'Unauthorized to access this page' in response.data
         mock_log.critical.assert_not_called()
 
     @mock.patch('ckanext.push_errors.blueprints.push_errors.toolkit')
@@ -46,13 +45,12 @@ class TestPushErrorView:
         mock_user.sysadmin = False
         mock_toolkit.g.userobj = mock_user
         mock_toolkit._ = lambda x: x
-        mock_toolkit.abort.side_effect = Exception("403 - Unauthorized")
 
         with app.test_client() as client:
-            with pytest.raises(Exception, match="403 - Unauthorized"):
-                client.get('/push-error/test')
+            response = client.get('/push-error/test')
 
-        mock_toolkit.abort.assert_called_once_with(403, 'Unauthorized to access this page')
+        assert response.status_code == 403
+        assert b'Unauthorized to access this page' in response.data
         mock_log.critical.assert_not_called()
 
     @mock.patch('ckanext.push_errors.blueprints.push_errors.toolkit')

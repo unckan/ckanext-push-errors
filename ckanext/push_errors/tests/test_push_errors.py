@@ -11,12 +11,12 @@ def app():
     """Create a Flask app with our blueprint registered"""
     app = Flask(__name__)
     app.config['BABEL_DEFAULT_LOCALE'] = 'en'
-    Babel(app)  # Inicializa Babel
+    Babel(app)
     app.register_blueprint(push_error_bp)
     return app
 
 
-class TestPushErrorView(object):
+class TestPushErrorView:
     """Tests for the push_errors blueprint"""
 
     @mock.patch('ckanext.push_errors.blueprints.push_errors.toolkit')
@@ -26,13 +26,14 @@ class TestPushErrorView(object):
         Test that a 403 response is returned when no user is logged in
         """
         mock_toolkit.g.userobj = None
+        mock_toolkit._ = lambda x: x  # simula traducción
         mock_toolkit.abort.side_effect = Exception("403 - Unauthorized")
 
-        with pytest.raises(Exception):
-            with app.test_client() as client:
+        with app.test_client() as client:
+            with pytest.raises(Exception, match="403 - Unauthorized"):
                 client.get('/push-error/test')
 
-        mock_toolkit.abort.assert_called_once_with(403, mock_toolkit._('Unauthorized to access this page'))
+        mock_toolkit.abort.assert_called_once_with(403, 'Unauthorized to access this page')
         mock_log.critical.assert_not_called()
 
     @mock.patch('ckanext.push_errors.blueprints.push_errors.toolkit')
@@ -44,13 +45,14 @@ class TestPushErrorView(object):
         mock_user = mock.Mock()
         mock_user.sysadmin = False
         mock_toolkit.g.userobj = mock_user
+        mock_toolkit._ = lambda x: x
         mock_toolkit.abort.side_effect = Exception("403 - Unauthorized")
 
-        with pytest.raises(Exception):
-            with app.test_client() as client:
+        with app.test_client() as client:
+            with pytest.raises(Exception, match="403 - Unauthorized"):
                 client.get('/push-error/test')
 
-        mock_toolkit.abort.assert_called_once_with(403, mock_toolkit._('Unauthorized to access this page'))
+        mock_toolkit.abort.assert_called_once_with(403, 'Unauthorized to access this page')
         mock_log.critical.assert_not_called()
 
     @mock.patch('ckanext.push_errors.blueprints.push_errors.toolkit')
@@ -62,6 +64,7 @@ class TestPushErrorView(object):
         mock_user = mock.Mock()
         mock_user.sysadmin = True
         mock_toolkit.g.userobj = mock_user
+        mock_toolkit._ = lambda x: x
         mock_toolkit.request.params.get.return_value = 'Push error test message'
 
         with app.test_client() as client:
@@ -79,6 +82,7 @@ class TestPushErrorView(object):
         mock_user = mock.Mock()
         mock_user.sysadmin = True
         mock_toolkit.g.userobj = mock_user
+        mock_toolkit._ = lambda x: x
         mock_toolkit.request.params.get.return_value = 'Custom error message for testing'
 
         with app.test_client() as client:
@@ -96,6 +100,7 @@ class TestPushErrorView(object):
         mock_user = mock.Mock()
         mock_user.sysadmin = True
         mock_toolkit.g.userobj = mock_user
+        mock_toolkit._ = lambda x: x
         mock_toolkit.request.params.get.return_value = 'Integration Test'
 
         with app.test_client() as client:

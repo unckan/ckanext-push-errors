@@ -48,8 +48,9 @@ class PushErrorsPlugin(plugins.SingletonPlugin):
             exception_str = f'{exception} [({type(exception).__name__})]'
             # get the stacktrace
             trace = traceback.format_exc()
-            # Limit the max trace length
-            trace = trace[-4000:]
+            # Limit the max trace length based on configuration
+            max_trace_length = int(toolkit.config.get('ckanext.push_errors.traceback_length', 4000))
+            trace = trace[:max_trace_length]
             params = toolkit.request.args if toolkit.request else '-'
             path = toolkit.request.path if toolkit.request else '-'
             user = current_user.name if current_user else '-'

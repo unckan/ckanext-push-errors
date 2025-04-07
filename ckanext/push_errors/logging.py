@@ -17,8 +17,8 @@ def can_send_message():
     Verifica si se puede enviar una nueva notificación según los límites definidos.
     """
     cache = get_cache()
-    limit_minute = int(toolkit.config.get('ckanext.push_errors.max_message_minute', 3))  # Default: 3
-    limit_hour = int(toolkit.config.get('ckanext.push_errors.max_message_hour', 10))    # Default: 10
+    limit_minute = int(toolkit.config.get('ckanext.push_errors.max_messages_minute', 3))  # Default: 3
+    limit_hour = int(toolkit.config.get('ckanext.push_errors.max_messages_hour', 10))    # Default: 10
 
     current_minute = datetime.now().strftime('%Y%m%d%H%M')
     current_hour = datetime.now().strftime('%Y%m%d%H')

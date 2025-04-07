@@ -27,7 +27,7 @@ class PushErrorsPlugin(plugins.SingletonPlugin):
             return app
 
         def error_handler(exception):
-
+            """ Capture all errors from the application """
             if not current_user:
                 # ignore 401, 403 and 404 errors if no user is logged in
                 skip_types_if_anon = (

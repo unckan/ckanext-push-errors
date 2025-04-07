@@ -7,9 +7,47 @@ from ckan import __version__ as ckan_version
 from ckan.common import current_user
 from ckan.plugins import toolkit
 from ckanext.push_errors import __VERSION__ as push_errors_version
-
+from ckanext.push_errors.redis import get_cache
 
 log = logging.getLogger(__name__)
+
+
+def can_send_message():
+    """
+    Verifica si se puede enviar una nueva notificación según los límites definidos.
+    """
+    cache = get_cache()
+    limit_minute = int(toolkit.config.get('ckanext.push_errors.max_messages_minute', 3))  # Default: 3
+    limit_hour = int(toolkit.config.get('ckanext.push_errors.max_messages_hour', 10))    # Default: 10
+
+    current_minute = datetime.now().strftime('%Y%m%d%H%M')
+    current_hour = datetime.now().strftime('%Y%m%d%H')
+
+    # Claves para Redis
+    minute_key = f'push_errors:minute:{current_minute}'
+    hour_key = f'push_errors:hour:{current_hour}'
+
+    # Incrementar contadores
+    minute_count = cache.incr(minute_key)
+    hour_count = cache.incr(hour_key)
+
+    # Define expire in the last call
+    if minute_count == 1:
+        cache.expire(minute_key, 60)  # Expira en 60 segundos
+    if hour_count == 1:
+        cache.expire(hour_key, 3600)  # Expira en 1 hora
+
+    # Verify limits
+    if minute_count > limit_minute:
+        log.warning(f'push-errors: Push error minute limit exceeded ({minute_count}/{limit_minute})')
+        return False
+
+    # Solo aplicar límite por minuto si también estamos cerca del límite por hora
+    if hour_count > limit_hour:
+        log.warning(f'push-errors: Push error hour limit exceeded ({hour_count}/{limit_hour})')
+        return False
+
+    return True
 
 
 class PushErrorHandler(Handler):
@@ -45,6 +83,10 @@ def push_message(message, extra_context={}):
      - ckanext.push_errors.headers: A JSON string with the headers to send
      - ckanext.push_errors.data: A JSON string with the data to send
     """
+
+    if not can_send_message():
+        log.info('push-errors: Message not sent due to notification limit.')
+        return None
 
     url = toolkit.config.get('ckanext.push_errors.url')
 

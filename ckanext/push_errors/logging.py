@@ -31,13 +31,13 @@ def can_send_message():
     minute_count = cache.incr(minute_key)
     hour_count = cache.incr(hour_key)
 
-    # Establecer expiración si es la primera vez
+    # Define expire in the last call
     if minute_count == 1:
         cache.expire(minute_key, 60)  # Expira en 60 segundos
     if hour_count == 1:
         cache.expire(hour_key, 3600)  # Expira en 1 hora
 
-    # Verificar límites
+    # Verify limits
     if minute_count > limit_minute:
         log.warning(f'push-errors: Push error minute limit exceeded ({minute_count}/{limit_minute})')
         return False

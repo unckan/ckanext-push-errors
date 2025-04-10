@@ -2,11 +2,7 @@ import pytest
 from ckanext.push_errors.cli.base import push_message_cli
 
 
-@pytest.mark.ckan_config("ckanext.push_errors.url", "http://mock-url.com")
-@pytest.mark.ckan_config("ckan.site_url", "http://mock-site.com")
-@pytest.mark.ckan_config("ckanext.push_errors.method", "POST")
-@pytest.mark.ckan_config("ckanext.push_errors.headers", '{"Authorization": "Bearer {site_url}"}')
-@pytest.mark.ckan_config("ckanext.push_errors.data", '{"error": "{message}"}')
+@pytest.fixture
 def test_push_message_cli(cli):
     """
     Test the 'push-message' CLI command.

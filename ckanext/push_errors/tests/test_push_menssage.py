@@ -3,12 +3,6 @@ from unittest.mock import patch, MagicMock
 from ckanext.push_errors.logging import push_message
 
 
-@pytest.mark.ckan_config('ckanext.push_errors.url', 'https://fake-url.org')
-@pytest.mark.ckan_config('ckan.site_url', 'https://mysite.org')
-@pytest.mark.ckan_config('ckanext.push_errors.method', 'POST')
-@pytest.mark.ckan_config('ckanext.push_errors.headers', '{}')
-@pytest.mark.ckan_config('ckanext.push_errors.data', '{}')
-@pytest.mark.ckan_config('ckanext.push_errors.message_title', 'Test Message {site_url} - {now}')
 @patch('ckanext.push_errors.logging.requests.post')
 def test_push_message_success(mock_post):
     # Simular respuesta exitosa
@@ -26,7 +20,8 @@ def test_push_message_success(mock_post):
     assert 'Message received' in response.text
 
 
-@pytest.mark.ckan_config('ckanext.push_errors.url', None)  # No se define URL
+# Este sí necesita sobrescribir lo que viene del test.ini
+@pytest.mark.ckan_config('ckanext.push_errors.url', None)
 @patch('ckanext.push_errors.logging.requests.post')
 def test_push_message_no_url(mock_post):
     response = push_message("Mensaje sin URL")

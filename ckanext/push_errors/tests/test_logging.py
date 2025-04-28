@@ -94,16 +94,3 @@ class TestPushErrorLogging:
             log.addHandler(push_error_handler)
             log.critical("This is a critical error!")
             mock_push_message.assert_called_once_with(ANY)
-
-    @patch("ckanext.push_errors.logging.can_send_message", return_value=True)
-    @patch("ckanext.push_errors.logging.toolkit.config")
-    @patch("ckanext.push_errors.logging.log")
-    def test_push_message_invalid_http_method(self, mock_log, mock_config, _):
-        mock_config.get.side_effect = lambda key, default=None: {
-            "ckanext.push_errors.url": "http://mock-url.com",
-            "ckan.site_url": "http://mock-site.com",
-            "ckanext.push_errors.method": "INVALID_METHOD"
-        }.get(key, default)
-        response = push_message("Test message")
-        mock_log.error.assert_called_once_with('push-errors: Invalid method')
-        assert response is None

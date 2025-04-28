@@ -1,8 +1,6 @@
-import pytest
 from ckanext.push_errors.cli.base import push_message_cli
 
 
-@pytest.fixture
 def test_push_message_cli(cli):
     """
     Test the 'push-message' CLI command.

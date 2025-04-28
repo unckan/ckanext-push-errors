@@ -38,6 +38,5 @@ def force_500():
 def force_critical():
     if not toolkit.c.userobj or not toolkit.c.userobj.sysadmin:
         return toolkit.abort(403)
-    log = logging.getLogger("ckan")
     log.critical("Forced critical log message")
     return "Logged", 200

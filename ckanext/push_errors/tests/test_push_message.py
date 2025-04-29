@@ -2,18 +2,8 @@ from unittest.mock import patch, MagicMock
 from ckanext.push_errors.logging import push_message
 
 
-@patch('ckanext.push_errors.logging.toolkit')
 @patch('ckanext.push_errors.logging.requests.post')
-def test_push_message_success(mock_post, mock_toolkit):
-    # Configuración de mocks
-    mock_toolkit.config.get.side_effect = lambda key, default=None: {
-        'ckanext.push_errors.url': 'https://fake-url.org',
-        'ckan.site_url': 'https://mysite.org',
-        'ckanext.push_errors.method': 'POST',
-        'ckanext.push_errors.headers': '{}',
-        'ckanext.push_errors.data': '{}',
-        'ckanext.push_errors.message_title': 'Test Message {site_url} - {now}'
-    }.get(key, default)
+def test_push_message_success(mock_post):
 
     # Simular respuesta exitosa
     mock_response = MagicMock()

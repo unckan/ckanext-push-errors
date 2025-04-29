@@ -25,3 +25,18 @@ def test_push_error():
 
     # Return a simple confirmation
     return toolkit._('Message logged: {}').format(msg)
+
+
+@push_error_bp.route('/force-500', methods=['GET'])
+def force_500():
+    if not toolkit.c.userobj or not toolkit.c.userobj.sysadmin:
+        return toolkit.abort(403)
+    raise Exception("Forced internal server error")
+
+
+@push_error_bp.route('/force-critical', methods=['GET'])
+def force_critical():
+    if not toolkit.c.userobj or not toolkit.c.userobj.sysadmin:
+        return toolkit.abort(403)
+    log.critical("Forced critical log message")
+    return "Logged", 200

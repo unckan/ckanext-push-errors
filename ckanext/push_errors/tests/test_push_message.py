@@ -22,13 +22,11 @@ def test_push_message_success(mock_post):
 
 
 @pytest.mark.ckan_config("ckanext.push_errors.url", "")
-@patch('ckanext.push_errors.logging.toolkit')
 @patch('ckanext.push_errors.logging.requests.post')
-def test_push_message_no_url(mock_post, mock_toolkit):
+def test_push_message_no_url(mock_post):
     # Configuración sin URL
-    mock_toolkit.config.get.return_value = None
 
-    response = push_message("Mensaje sin URL")
+    response = push_message("Missing URL")
 
     # Verificar que no se hizo ninguna solicitud
     mock_post.assert_not_called()

@@ -1,4 +1,5 @@
 from unittest.mock import patch, MagicMock
+import pytest
 from ckanext.push_errors.logging import push_message
 
 
@@ -20,6 +21,7 @@ def test_push_message_success(mock_post):
     assert 'Message received' in response.text
 
 
+@pytest.mark.ckan_config("ckanext.push_errors.url", "")
 @patch('ckanext.push_errors.logging.toolkit')
 @patch('ckanext.push_errors.logging.requests.post')
 def test_push_message_no_url(mock_post, mock_toolkit):

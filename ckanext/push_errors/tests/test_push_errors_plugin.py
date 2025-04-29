@@ -4,12 +4,6 @@ from werkzeug.exceptions import InternalServerError, Unauthorized, Forbidden, No
 from ckanext.push_errors.plugin import PushErrorsPlugin
 
 
-class CustomHTTPException(Exception):
-    def __init__(self, message, code):
-        super().__init__(message)
-        self.code = code
-
-
 @patch("ckanext.push_errors.plugin.push_message")
 def test_error_handler(mock_push_message, app):
     """Test that the error handler processes exceptions correctly."""

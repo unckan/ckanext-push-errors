@@ -1,5 +1,7 @@
 from unittest import mock
-from flask import g
+import uuid
+from ckan.lib.helpers import url_for
+from ckan.tests import factories
 from ckanext.push_errors.blueprints import push_errors
 
 
@@ -12,7 +14,6 @@ class TestPushErrorView:
         Test that a 403 response is returned when no user is logged in
         """
         with app.flask_app.app_context():
-            g.userobj = None
             with mock.patch.object(push_errors.toolkit, '_', lambda x: x):
                 client = app.test_client()
                 response = client.get('/push-error/test')
@@ -26,14 +27,10 @@ class TestPushErrorView:
         """
         Test that a 403 response is returned when the user is not a sysadmin
         """
-        user_mock = mock.Mock()
-        user_mock.sysadmin = False
-
-        with app.flask_app.app_context():
-            g.userobj = user_mock
-            with mock.patch.object(push_errors.toolkit, '_', lambda x: x):
-                client = app.test_client()
-                response = client.get('/push-error/test')
+        user_with_token = factories.UserWithToken()
+        url = url_for('/push-error/test', msg='test')
+        auth = {"Authorization": user_with_token['token']}
+        response = app.get(url, headers=auth)
 
         assert response.status_code == 403
         assert b'Unauthorized to access this page' in response.data
@@ -50,14 +47,10 @@ class TestPushErrorView:
             'ckanext.push_errors.url': 'http://example.com',
         }.get(key, default)
 
-        user_mock = mock.Mock()
-        user_mock.sysadmin = True
-
-        with app.flask_app.app_context():
-            g.userobj = user_mock
-            with mock.patch.object(push_errors.toolkit, '_', lambda x: x):
-                client = app.test_client()
-                response = client.get('/push-error/test?msg=Push+error+test+message')
+        sysadmin_with_token = factories.UserWithToken()
+        url = url_for('/push-error/test', msg='Push error test message')
+        auth = {"Authorization": sysadmin_with_token['token']}
+        response = app.get(url, headers=auth)
 
         mock_push_message.assert_called_once_with('Push error test message')
         assert b'Message logged: Push error test message' in response.data
@@ -74,14 +67,10 @@ class TestPushErrorView:
         }.get(key, default)
 
         text = 'Custom error message for testing'
-        user_mock = mock.Mock()
-        user_mock.sysadmin = True
-
-        with app.flask_app.app_context():
-            g.userobj = user_mock
-            with mock.patch.object(push_errors.toolkit, '_', lambda x: x):
-                client = app.test_client()
-                response = client.get(f'/push-error/test?msg={text.replace(" ", "+")}')
+        sysadmin_with_token = factories.UserWithToken()
+        url = url_for('/push-error/test', msg=text.replace(" ", "+"))
+        auth = {"Authorization": sysadmin_with_token['token']}
+        response = app.get(url, headers=auth)
 
         mock_push_message.assert_called_once_with(text)
         assert b'Message logged: Custom error message for testing' in response.data
@@ -97,14 +86,10 @@ class TestPushErrorView:
             'ckanext.push_errors.url': 'http://example.com',
         }.get(key, default)
 
-        user_mock = mock.Mock()
-        user_mock.sysadmin = True
-
-        with app.flask_app.app_context():
-            g.userobj = user_mock
-            with mock.patch.object(push_errors.toolkit, '_', lambda x: x):
-                client = app.test_client()
-                response = client.get('/push-error/test?msg=Integration+Test')
+        sysadmin_with_token = factories.UserWithToken()
+        url = url_for('/push-error/test', msg='Integration Test')
+        auth = {"Authorization": sysadmin_with_token['token']}
+        response = app.get(url, headers=auth)
 
         mock_push_message.assert_called_once_with('Integration Test')
         assert b'Message logged: Integration Test' in response.data

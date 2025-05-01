@@ -1,5 +1,5 @@
 from unittest import mock
-import uuid
+import pytest
 from ckan.lib.helpers import url_for
 from ckan.tests import factories
 from ckanext.push_errors.blueprints import push_errors
@@ -36,39 +36,30 @@ class TestPushErrorView:
         assert b'Unauthorized to access this page' in response.data
         mock_log.critical.assert_not_called()
 
+    @pytest.mark.ckan_config('ckanext.push_errors.url', 'http://example.com')
     @mock.patch('ckanext.push_errors.logging.push_message')
-    @mock.patch('ckanext.push_errors.blueprints.push_errors.toolkit.config.get')
-    def test_sysadmin_default_message(self, mock_config_get, mock_push_message, app):
+    def test_sysadmin_default_message(self, mock_push_message, app):
         """
         Test that a sysadmin can access the view and log the default message
         """
-        # Mock configuration values
-        mock_config_get.side_effect = lambda key, default=None: {
-            'ckanext.push_errors.url': 'http://example.com',
-        }.get(key, default)
 
-        sysadmin_with_token = factories.UserWithToken()
-        url = url_for('/push-error/test', msg='Push error test message')
+        sysadmin_with_token = factories.SysadminWithToken()
+        url = url_for('push_errors.test_push_error', msg='Push error test message')
         auth = {"Authorization": sysadmin_with_token['token']}
         response = app.get(url, headers=auth)
 
         mock_push_message.assert_called_once_with('Push error test message')
         assert b'Message logged: Push error test message' in response.data
 
+    @pytest.mark.ckan_config('ckanext.push_errors.url', 'http://example.com')
     @mock.patch('ckanext.push_errors.logging.push_message')
-    @mock.patch('ckanext.push_errors.blueprints.push_errors.toolkit.config.get')
-    def test_sysadmin_custom_message(self, mock_config_get, mock_push_message, app):
+    def test_sysadmin_custom_message(self, mock_push_message, app):
         """
         Test that a sysadmin can access the view and log a custom message
         """
-        # Mock configuration values
-        mock_config_get.side_effect = lambda key, default=None: {
-            'ckanext.push_errors.url': 'http://example.com',
-        }.get(key, default)
-
         text = 'Custom error message for testing'
-        sysadmin_with_token = factories.UserWithToken()
-        url = url_for('/push-error/test', msg=text.replace(" ", "+"))
+        sysadmin_with_token = factories.SysadminWithToken()
+        url = url_for('push_errors.test_push_error', msg=text.replace(" ", "+"))
         auth = {"Authorization": sysadmin_with_token['token']}
         response = app.get(url, headers=auth)
 
@@ -76,18 +67,14 @@ class TestPushErrorView:
         assert b'Message logged: Custom error message for testing' in response.data
 
     @mock.patch('ckanext.push_errors.logging.push_message')
-    @mock.patch('ckanext.push_errors.blueprints.push_errors.toolkit.config.get')
-    def test_integration_with_app_context(self, mock_config_get, mock_push_message, app):
+    @pytest.mark.ckan_config('ckanext.push_errors.url', 'http://example.com')
+    def test_integration_with_app_context(self, mock_push_message, app):
         """
         Test the view function within an application context to ensure the blueprint routing works
         """
-        # Mock configuration values
-        mock_config_get.side_effect = lambda key, default=None: {
-            'ckanext.push_errors.url': 'http://example.com',
-        }.get(key, default)
 
         sysadmin_with_token = factories.UserWithToken()
-        url = url_for('/push-error/test', msg='Integration Test')
+        url = url_for('push_errors.test_push_error', msg='Integration Test')
         auth = {"Authorization": sysadmin_with_token['token']}
         response = app.get(url, headers=auth)
 

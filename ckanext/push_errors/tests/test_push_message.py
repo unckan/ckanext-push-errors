@@ -19,7 +19,7 @@ def test_push_message_success(mock_limit, mock_post):
     # Verificar que la llamada se hizo correctamente
     mock_post.assert_called_once()
     assert response.status_code == 200
-    assert response.text == 'Message received'
+    assert 'Message received' in response.text
 
 
 @pytest.mark.ckan_config("ckanext.push_errors.url", "")

@@ -56,3 +56,62 @@ def test_middleware_handles_multiple_exceptions(mock_push_message, exception):
         mock_push_message.assert_not_called()
     else:
         mock_push_message.assert_called_once_with(ANY)
+
+
+@patch("ckanext.push_errors.plugin.toolkit.config")
+@patch("ckanext.push_errors.plugin.push_message")
+def test_traceback_length_respected_flat_config(mock_push_message, mock_config):
+    """Ensure the traceback is limited by the config value (flat .get usage)."""
+    mock_config.get.return_value = 1000
+
+    mock_app = MagicMock()
+    mock_app.register_error_handler = MagicMock()
+
+    plugin = PushErrorsPlugin()
+    plugin.make_middleware(mock_app, {})
+    error_handler = mock_app.register_error_handler.call_args[0][1]
+
+    try:
+        error_handler(InternalServerError("Test exception"))
+    except InternalServerError:
+        pass
+
+    mock_push_message.assert_called_once()
+    called_msg = mock_push_message.call_args[0][0]
+    trace_section = called_msg.split("```")[1]  # TRACE\n```{...}```
+    assert len(trace_section) <= 1000, f"Traceback length exceeds limit: {len(trace_section)}"
+
+
+@patch("ckanext.push_errors.plugin.toolkit.config")
+@patch("ckanext.push_errors.plugin.push_message")
+def test_traceback_length_respected_with_nested_exception(mock_push_message, mock_config):
+    """Ensure traceback length is respected in nested exception scenarios."""
+    mock_config.get.side_effect = lambda key, default=None: {
+        'ckanext.push_errors.traceback_length': 100
+    }.get(key, default)
+
+    mock_app = MagicMock()
+    mock_app.register_error_handler = MagicMock()
+
+    plugin = PushErrorsPlugin()
+    plugin.make_middleware(mock_app, {})
+    error_handler = mock_app.register_error_handler.call_args[0][1]
+
+    def raise_nested_exception():
+        try:
+            raise ValueError("Inner error")
+        except ValueError:
+            raise InternalServerError("Outer exception")
+
+    try:
+        raise_nested_exception()
+    except InternalServerError as e:
+        try:
+            error_handler(e)
+        except InternalServerError:
+            pass
+
+    mock_push_message.assert_called_once()
+    called_msg = mock_push_message.call_args[0][0]
+    trace_section = called_msg.split("```")[1]
+    assert len(trace_section) <= 100, f"Traceback length exceeds 100: {len(trace_section)}"

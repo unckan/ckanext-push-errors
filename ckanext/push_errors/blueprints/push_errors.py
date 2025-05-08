@@ -1,6 +1,7 @@
 import logging
 from flask import Blueprint
 from ckan.plugins import toolkit
+from urllib.parse import unquote_plus
 
 log = logging.getLogger(__name__)
 
@@ -18,7 +19,8 @@ def test_push_error():
         return toolkit.abort(403, toolkit._('Unauthorized to access this page'))
 
     # Get the message from the query parameters or use the default
-    msg = toolkit.request.params.get('msg', 'Push error test message')
+    raw_msg = toolkit.request.params.get('msg', 'Push error test message')
+    msg = unquote_plus(raw_msg)
 
     # Log the critical message
     log.critical(msg)

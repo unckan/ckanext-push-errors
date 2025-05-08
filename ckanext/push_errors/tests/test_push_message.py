@@ -5,7 +5,6 @@ from ckanext.push_errors.logging import push_message
 
 @patch('ckanext.push_errors.logging.requests.post')
 @patch('ckanext.push_errors.logging.can_send_message', return_value=True)
-@pytest.mark.ckan_config('ckanext.push_errors.url', 'http://example.com')
 def test_push_message_success(mock_limit, mock_post):
     # Simular respuesta exitosa
     mock_response = MagicMock()

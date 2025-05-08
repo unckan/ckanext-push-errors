@@ -5,7 +5,7 @@ from ckanext.push_errors.logging import push_message
 
 @patch('ckanext.push_errors.logging.requests.post')
 @patch('ckanext.push_errors.logging.can_send_message', return_value=True)
-def test_push_message_success(mock_limit, mock_post):
+def test_push_message_success(mock_msg, mock_post):
     # Simular respuesta exitosa
     mock_response = MagicMock()
     mock_response.status_code = 200

@@ -20,6 +20,7 @@ def test_push_error():
 
     # Get the message from the query parameters or use the default
     raw_msg = toolkit.request.params.get('msg', 'Push error test message')
+    # Decode '+' and '%20' from the URL-encoded message (e.g., 'Custom+error+message' -> 'Custom error message')
     msg = unquote_plus(raw_msg)
 
     # Log the critical message

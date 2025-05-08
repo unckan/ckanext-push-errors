@@ -1,5 +1,4 @@
 from unittest import mock
-import pytest
 from ckan.lib.helpers import url_for
 from ckan.tests import factories
 
@@ -33,7 +32,6 @@ class TestPushErrorView:
         assert b'Unauthorized to access this page' in response.data
         mock_log.critical.assert_not_called()
 
-    @pytest.mark.ckan_config('ckanext.push_errors.url', 'http://example.com')
     @mock.patch('ckanext.push_errors.blueprints.push_errors.log')
     def test_sysadmin_default_message(self, mock_log, app):
         """
@@ -48,7 +46,6 @@ class TestPushErrorView:
         mock_log.critical.assert_called_once_with(msg)
         assert f'Message logged: {msg}'.encode() in response.data
 
-    @pytest.mark.ckan_config('ckanext.push_errors.url', 'http://example.com')
     @mock.patch('ckanext.push_errors.blueprints.push_errors.log')
     def test_sysadmin_custom_message(self, mock_log, app):
         """
@@ -63,7 +60,6 @@ class TestPushErrorView:
         mock_log.critical.assert_called_once_with(text)
         assert f'Message logged: {text}'.encode() in response.data
 
-    @pytest.mark.ckan_config('ckanext.push_errors.url', 'http://example.com')
     @mock.patch('ckanext.push_errors.blueprints.push_errors.log')
     def test_integration_with_app_context(self, mock_log, app):
         """

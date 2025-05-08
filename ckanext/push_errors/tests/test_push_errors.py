@@ -2,7 +2,6 @@ from unittest import mock
 import pytest
 from ckan.lib.helpers import url_for
 from ckan.tests import factories
-from ckanext.push_errors.blueprints import push_errors
 
 
 class TestPushErrorView:
@@ -13,10 +12,8 @@ class TestPushErrorView:
         """
         Test that a 403 response is returned when no user is logged in
         """
-        with app.flask_app.app_context():
-            with mock.patch.object(push_errors.toolkit, '_', lambda x: x):
-                client = app.test_client()
-                response = client.get('/push-error/test')
+        url = url_for('/push-error/test', msg='test')
+        response = app.get(url)
 
         assert response.status_code == 403
         assert b'Unauthorized to access this page' in response.data

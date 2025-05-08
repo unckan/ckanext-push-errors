@@ -19,9 +19,9 @@ def test_push_error():
         return toolkit.abort(403, toolkit._('Unauthorized to access this page'))
 
     # Get the message from the query parameters or use the default
-    raw_msg = toolkit.request.params.get('msg', 'Push error test message')
+    encoded_msg = toolkit.request.params.get('msg', 'Push error test message')
     # Decode '+' and '%20' from the URL-encoded message (e.g., 'Custom+error+message' -> 'Custom error message')
-    msg = unquote_plus(raw_msg)
+    msg = unquote_plus(encoded_msg)
 
     # Log the critical message
     log.critical(msg)

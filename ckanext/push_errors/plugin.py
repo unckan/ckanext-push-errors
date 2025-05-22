@@ -81,12 +81,6 @@ class PushErrorsPlugin(plugins.SingletonPlugin):
         ckanext_log = logging.getLogger('ckanext')
         ckanext_log.addHandler(push_error_handler)
 
-        if not hasattr(app, 'logger'):
-            log.info(f'PUSH_ERRORS The app {app} has no logger')
-        else:
-            # Add to the app. TODO.Investigate if this is needed
-            app.logger.addHandler(push_error_handler)
-
         return app
 
     # IClick

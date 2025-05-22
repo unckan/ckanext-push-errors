@@ -1,5 +1,6 @@
 import requests
 import logging
+import pytest
 from datetime import datetime
 from unittest.mock import patch, ANY
 from ckanext.push_errors.logging import push_message, PushErrorHandler
@@ -10,23 +11,16 @@ logging.basicConfig(level=logging.DEBUG)
 
 class TestPushErrorLogging:
 
+    @pytest.mark.ckan_config("ckanext.push_errors.url", "http://mock-url-99.com")
+    @pytest.mark.ckan_config("ckanext.push_errors.headers", '{"Authorization": "Bearer {site_url}"}')
     @patch("ckanext.push_errors.logging.can_send_message", return_value=True)
     @patch("ckanext.push_errors.logging.ckan_version", new="2.11.1")
-    @patch("ckanext.push_errors.logging.toolkit.config")
     @patch("ckanext.push_errors.logging.datetime")
     @patch("ckanext.push_errors.logging.requests.post")
-    def test_push_message_with_valid_config(self, mock_post, mock_datetime, mock_config, _can_send):
+    def test_push_message_with_valid_config(self, mock_post, mock_datetime, _can_send):
         fixed_time = datetime(2025, 1, 23, 14, 6, 38)
         mock_datetime.now.return_value = fixed_time
         mock_datetime.side_effect = lambda *a, **kw: datetime(*a, **kw)
-
-        mock_config.get.side_effect = lambda key, default=None: {
-            "ckanext.push_errors.url": "http://mock-url.com",
-            "ckanext.push_errors.method": "POST",
-            "ckan.site_url": "http://mock-site.com",
-            "ckanext.push_errors.headers": '{"Authorization": "Bearer {site_url}"}',
-            "ckanext.push_errors.data": '{"error": "{message}"}'
-        }.get(key, default)
 
         mock_post.return_value.status_code = 200
 
@@ -38,47 +32,34 @@ class TestPushErrorLogging:
 
         response = push_message("Test message")
         mock_post.assert_called_once_with(
-            "http://mock-url.com",
+            "http://mock-url-99.com",
             json={"error": expected_message},
-            headers={"Authorization": "Bearer http://mock-site.com"}
+            headers={"Authorization": "Bearer http://mock-site-99.com"}
         )
         assert response.status_code == 200
 
+    @pytest.mark.ckan_config("ckanext.push_errors.url", "")
     @patch("ckanext.push_errors.logging.can_send_message", return_value=True)
-    @patch("ckanext.push_errors.logging.toolkit.config")
     @patch("ckanext.push_errors.logging.log")
-    def test_push_message_with_invalid_url(self, mock_log, mock_config, _):
-        mock_config.get.return_value = ""
+    def test_push_message_with_invalid_url(self, mock_log, _):
         response = push_message("Test message")
         mock_log.warning.assert_called_once_with(
             'push-errors: No URL configured, logging message locally.'
         )
         assert response is None
 
+    @pytest.mark.ckan_config("ckanext.push_errors.method", "INVALID_METHOD")
     @patch("ckanext.push_errors.logging.can_send_message", return_value=True)
-    @patch("ckanext.push_errors.logging.toolkit.config")
     @patch("ckanext.push_errors.logging.log")
-    def test_push_message_with_invalid_method(self, mock_log, mock_config, _):
-        mock_config.get.side_effect = lambda key, default=None: {
-            "ckanext.push_errors.url": "http://mock-url.com",
-            "ckanext.push_errors.method": "INVALID_METHOD"
-        }.get(key, default)
+    def test_push_message_with_invalid_method(self, mock_log, _):
         response = push_message("Test message")
         mock_log.error.assert_called_once_with('push-errors: Invalid method')
         assert response is None
 
     @patch("ckanext.push_errors.logging.can_send_message", return_value=True)
     @patch("ckanext.push_errors.logging.requests.post")
-    @patch("ckanext.push_errors.logging.toolkit.config")
     @patch("ckanext.push_errors.logging.log")
-    def test_push_message_with_network_error(self, mock_log, mock_config, mock_post, _):
-        mock_config.get.side_effect = lambda key, default=None: {
-            "ckanext.push_errors.url": "http://mock-url.com",
-            "ckanext.push_errors.method": "POST",
-            "ckan.site_url": "http://mock-site.com",
-            "ckanext.push_errors.headers": '{"Authorization": "Bearer {site_url}"}',
-            "ckanext.push_errors.data": '{"error": "{message}"}'
-        }.get(key, default)
+    def test_push_message_with_network_error(self, mock_log, mock_post, _):
         mock_post.side_effect = requests.RequestException("Network error")
         response = push_message("Test message")
         mock_log.error.assert_called_once_with(

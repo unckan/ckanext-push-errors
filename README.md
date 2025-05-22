@@ -61,6 +61,23 @@ To create a webhook in Slack:
  - Good look with this incredible complex way to create a webhook: https://api.slack.com/messaging/webhooks
  - Probably going to https://api.slack.com/apps/YOUR-APP-ID/incoming-webhooks URL will help you.
 
+### Error Identification and Notification Management
+
+Errors are now uniquely identified using the file path and line number where they occur. This allows:
+
+1. **Avoiding duplicate notifications**: Errors are logged only once per unique identifier.
+2. **Disabling notifications**: You can disable notifications for specific errors by setting `disable_notification=True` when calling `log_error`.
+
+#### Example Usage
+
+```python
+try:
+    # Some code that raises an exception
+    raise ValueError("An example error")
+except Exception as e:
+    log_error(e, disable_notification=True)
+```
+
 ## Tests
 
 To run the tests, do:

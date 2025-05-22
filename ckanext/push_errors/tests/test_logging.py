@@ -13,6 +13,7 @@ class TestPushErrorLogging:
 
     @pytest.mark.ckan_config("ckanext.push_errors.url", "http://mock-url-99.com")
     @pytest.mark.ckan_config("ckanext.push_errors.headers", '{"Authorization": "Bearer {site_url}"}')
+    @pytest.mark.ckan_config("ckan.site_url", 'http://my-site.org')
     @patch("ckanext.push_errors.logging.can_send_message", return_value=True)
     @patch("ckanext.push_errors.logging.ckan_version", new="2.11.1")
     @patch("ckanext.push_errors.logging.datetime")
@@ -43,7 +44,7 @@ class TestPushErrorLogging:
         for part in expected_message_parts:
             assert part in msg["message"]
         # check the headers
-        assert kwargs["headers"] == {"Authorization": "Bearer http://mock-site-99.com"}
+        assert kwargs["headers"] == {"Authorization": "Bearer http://my-site.org"}
 
         assert response.status_code == 200
 

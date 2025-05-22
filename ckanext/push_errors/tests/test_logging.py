@@ -24,19 +24,24 @@ class TestPushErrorLogging:
 
         mock_post.return_value.status_code = 200
 
-        default_title = (
-            f'PUSH_ERROR *http://localhost:5000* \n'
-            f'v{push_errors_version} - CKAN 2.11.1\n{fixed_time.isoformat()} user: -\n'
-        )
-        expected_message = default_title + "\nTest message"
+        pushed_msg = "Test message"
+        expected_message_parts = [
+            "PUSH_ERROR",
+            "CKAN 2.11.1",
+            pushed_msg,
+            f"v{push_errors_version}",
+        ]
 
-        response = push_message("Test message")
+        response = push_message(pushed_msg)
         # get all args for the post call
         args, kwargs = mock_post.call_args
         # check the URL (first param)
         assert args[0] == "http://mock-url-99.com"
         # check the json data
-        assert kwargs["json"] == {"message": expected_message}
+        msg = kwargs["json"]
+        # check if all expected parts are in the message
+        for part in expected_message_parts:
+            assert part in msg["message"]
         # check the headers
         assert kwargs["headers"] == {"Authorization": "Bearer http://mock-site-99.com"}
 

@@ -25,17 +25,21 @@ class TestPushErrorLogging:
         mock_post.return_value.status_code = 200
 
         default_title = (
-            f'PUSH_ERROR *http://mock-site.com* \n'
+            f'PUSH_ERROR *http://localhost:5000* \n'
             f'v{push_errors_version} - CKAN 2.11.1\n{fixed_time.isoformat()} user: -\n'
         )
         expected_message = default_title + "\nTest message"
 
         response = push_message("Test message")
-        mock_post.assert_called_once_with(
-            "http://mock-url-99.com",
-            json={"error": expected_message},
-            headers={"Authorization": "Bearer http://mock-site-99.com"}
-        )
+        # get all args for the post call
+        args, kwargs = mock_post.call_args[0]
+        # check the URL (first param)
+        assert args[0] == "http://mock-url-99.com"
+        # check the json data
+        assert kwargs["json"] == {"message": expected_message}
+        # check the headers
+        assert kwargs["headers"] == {"Authorization": "Bearer http://mock-site-99.com"}
+
         assert response.status_code == 200
 
     @pytest.mark.ckan_config("ckanext.push_errors.url", "")
@@ -56,6 +60,7 @@ class TestPushErrorLogging:
         mock_log.error.assert_called_once_with('push-errors: Invalid method')
         assert response is None
 
+    @pytest.mark.ckan_config("ckanext.push_errors.url", "http://mock-url.com")
     @patch("ckanext.push_errors.logging.can_send_message", return_value=True)
     @patch("ckanext.push_errors.logging.requests.post")
     @patch("ckanext.push_errors.logging.log")

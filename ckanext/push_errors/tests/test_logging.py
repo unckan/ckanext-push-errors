@@ -32,7 +32,7 @@ class TestPushErrorLogging:
 
         response = push_message("Test message")
         # get all args for the post call
-        args, kwargs = mock_post.call_args[0]
+        args, kwargs = mock_post.call_args
         # check the URL (first param)
         assert args[0] == "http://mock-url-99.com"
         # check the json data

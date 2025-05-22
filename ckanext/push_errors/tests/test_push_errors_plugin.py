@@ -58,11 +58,10 @@ def test_middleware_handles_multiple_exceptions(mock_push_message, exception):
         mock_push_message.assert_called_once_with(ANY)
 
 
-@patch("ckanext.push_errors.plugin.toolkit.config")
+@pytest.mark.ckan_config("ckanext.push_errors.traceback_length", "1000")
 @patch("ckanext.push_errors.plugin.push_message")
-def test_traceback_length_respected_flat_config(mock_push_message, mock_config):
-    """Ensure the traceback is limited by the config value (flat .get usage)."""
-    mock_config.get.return_value = 1000
+def test_traceback_length_respected_flat_config(mock_push_message):
+    """ Ensure the traceback is limited by the config value (flat .get usage). """
 
     mock_app = MagicMock()
     mock_app.register_error_handler = MagicMock()
@@ -72,7 +71,7 @@ def test_traceback_length_respected_flat_config(mock_push_message, mock_config):
     error_handler = mock_app.register_error_handler.call_args[0][1]
 
     try:
-        error_handler(InternalServerError("Test exception"))
+        error_handler(InternalServerError("Test exception" + "*" * 2000))
     except InternalServerError:
         pass
 
@@ -82,13 +81,10 @@ def test_traceback_length_respected_flat_config(mock_push_message, mock_config):
     assert len(trace_section) <= 1000, f"Traceback length exceeds limit: {len(trace_section)}"
 
 
-@patch("ckanext.push_errors.plugin.toolkit.config")
+@pytest.mark.ckan_config("ckanext.push_errors.traceback_length", "100")
 @patch("ckanext.push_errors.plugin.push_message")
-def test_traceback_length_respected_with_nested_exception(mock_push_message, mock_config):
-    """Ensure traceback length is respected in nested exception scenarios."""
-    mock_config.get.side_effect = lambda key, default=None: {
-        'ckanext.push_errors.traceback_length': 100
-    }.get(key, default)
+def test_traceback_length_respected_with_nested_exception(mock_push_message):
+    """ Ensure traceback length is respected in nested exception scenarios."""
 
     mock_app = MagicMock()
     mock_app.register_error_handler = MagicMock()
@@ -99,9 +95,9 @@ def test_traceback_length_respected_with_nested_exception(mock_push_message, moc
 
     def raise_nested_exception():
         try:
-            raise ValueError("Inner error")
+            raise ValueError("Inner error" + "*" * 1000)
         except ValueError:
-            raise InternalServerError("Outer exception")
+            raise InternalServerError("Outer exception" + "*" * 1000)
 
     try:
         raise_nested_exception()

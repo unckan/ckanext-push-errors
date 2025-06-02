@@ -22,13 +22,13 @@ def raise_dummy_error():
 
 @pytest.fixture(autouse=True)
 def clear_tracking_sets():
-    """ Clear global tracking sets before each test """
+    """Clear global tracking sets before each test"""
     logged_errors.clear()
     disabled_notifications.clear()
 
 
 def test_log_error_once(caplog):
-    """ Should log the error once and avoid duplication """
+    """Should log the error once and avoid duplication"""
     with caplog.at_level(logging.CRITICAL):
         try:
             raise_dummy_error()
@@ -41,22 +41,21 @@ def test_log_error_once(caplog):
 
 
 def test_log_error_silenced(caplog):
-    """ Should not log if disable_notification=True """
+    """Should not log if disable_notification=True"""
     with caplog.at_level(logging.CRITICAL):
         try:
             raise_dummy_error()
         except DummyError as e:
             log_error(e, disable_notification=True)
 
-    # No output if silenced immediately
     assert len(caplog.records) == 1
     assert "Dummy error" in caplog.text
 
-    # Reintentar: ya está silenciado
+    # Retry: it should be silenced now
     with caplog.at_level(logging.CRITICAL):
         try:
             raise_dummy_error()
         except DummyError as e:
             log_error(e)
 
-    assert len(caplog.records) == 1  # no nuevos registros
+    assert len(caplog.records) == 1  # No new logs

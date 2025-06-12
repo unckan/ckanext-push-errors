@@ -7,6 +7,7 @@ from ckan.plugins import toolkit
 from ckanext.push_errors.logging import PushErrorHandler, push_message
 from ckanext.push_errors.cli import push_errors as push_errors_commands
 from ckanext.push_errors.error_logger import log_error
+from ckanext.push_errors.utils import get_error_trace_id
 
 from ckanext.push_errors.blueprints.push_errors import push_error_bp
 
@@ -59,16 +60,17 @@ class PushErrorsPlugin(plugins.SingletonPlugin):
             params = toolkit.request.args if toolkit.request else '-'
             path = toolkit.request.path if toolkit.request else '-'
             user = current_user.name if current_user else '-'
+            error_id = get_error_trace_id(exception)
 
             error_message = (
-                f'INTERNAL_ERROR `{exception_str}` \n\t'
-                f'TRACE\n```{trace}```\n\t'
-                f'on page {path}\n\t'
-                f'params: {params}\n\t'
+                f'INTERNAL_ERROR `{exception_str}`\n'
+                f'TRACE\n'
+                f'```{trace}```\n'
+                f'on page {path}\n'
+                f'params: {params}\n'
                 f'by user *{user}*'
             )
-            push_message(error_message)
-            # Continue to raise the error
+            push_message(error_message, extra_context={'error_id': error_id})
             raise exception
 
         app.register_error_handler(Exception, error_handler)
@@ -81,14 +83,8 @@ class PushErrorsPlugin(plugins.SingletonPlugin):
         # Prepare and add the PushErrorHandler
         push_error_handler = PushErrorHandler()
         push_error_handler.setLevel(logging.ERROR)
-
-        # Add to the ckan logger
-        ckan_log = logging.getLogger('ckan')
-        ckan_log.addHandler(push_error_handler)
-        # Add to the ckanext logger for all extensions
-        ckanext_log = logging.getLogger('ckanext')
-        ckanext_log.addHandler(push_error_handler)
-
+        logging.getLogger('ckan').addHandler(push_error_handler)
+        logging.getLogger('ckanext').addHandler(push_error_handler)
         return app
 
     # IClick

@@ -8,6 +8,7 @@ from ckan.common import current_user
 from ckan.plugins import toolkit
 from ckanext.push_errors import __VERSION__ as push_errors_version
 from ckanext.push_errors.redis import get_cache
+from ckanext.push_errors.utils import get_error_log_id
 
 log = logging.getLogger(__name__)
 
@@ -63,7 +64,12 @@ class PushErrorHandler(Handler):
                 f'[{extras.get("name")}]::{extras.get("levelname")}::'
                 f'{extras.get("asctime")}'
             )
-            push_message(msg)
+
+            # Generate unique log ID
+            error_id = get_error_log_id(record)
+
+            # Send with additional context
+            push_message(msg, extra_context={"error_id": error_id})
 
 
 def push_message(message, extra_context={}):

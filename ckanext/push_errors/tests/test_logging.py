@@ -2,7 +2,7 @@ import requests
 import logging
 import pytest
 from datetime import datetime
-from unittest.mock import patch, ANY
+from unittest.mock import patch
 from ckanext.push_errors.logging import push_message, PushErrorHandler
 from ckanext.push_errors import __VERSION__ as push_errors_version
 
@@ -85,4 +85,7 @@ class TestPushErrorLogging:
             push_error_handler = PushErrorHandler()
             log.addHandler(push_error_handler)
             log.critical("This is a critical error!")
-            mock_push_message.assert_called_once_with(ANY)
+            mock_push_message.assert_called_once()
+            args, kwargs = mock_push_message.call_args
+            assert "This is a critical error!" in args[0]
+            assert "error_id" in kwargs["extra_context"]

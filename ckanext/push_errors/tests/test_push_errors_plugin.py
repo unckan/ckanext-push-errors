@@ -1,5 +1,5 @@
 import pytest
-from unittest.mock import patch, ANY, MagicMock
+from unittest.mock import patch, MagicMock
 from werkzeug.exceptions import InternalServerError, Unauthorized, Forbidden, NotFound
 from ckanext.push_errors.plugin import PushErrorsPlugin
 
@@ -55,7 +55,10 @@ def test_middleware_handles_multiple_exceptions(mock_push_message, exception):
     if isinstance(exception, (Unauthorized, Forbidden, NotFound)):
         mock_push_message.assert_not_called()
     else:
-        mock_push_message.assert_called_once_with(ANY)
+        mock_push_message.assert_called_once()
+        args, kwargs = mock_push_message.call_args
+        assert "Internal error" in args[0]
+        assert "error_id" in kwargs["extra_context"]
 
 
 @pytest.mark.ckan_config("ckanext.push_errors.traceback_length", "1000")

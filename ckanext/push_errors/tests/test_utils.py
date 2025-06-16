@@ -21,8 +21,10 @@ def test_get_error_trace_id_returns_path_and_line():
         raise_custom_error()
     except CustomError as e:
         trace_id = get_error_trace_id(e)
-        assert ":" in trace_id
-        assert not trace_id.endswith(".py")  # it only ends with ":<line>"
+        assert ":" in trace_id, "Trace ID should contain a colon"
+        path, line = trace_id.rsplit(":", 1)
+        assert path.endswith("test_utils.py"), f"Expected path to end with test_utils.py, got {path}"
+        assert line.isdigit(), f"Expected a line number, got {line}"
 
 
 def test_get_error_trace_id_unknown_when_no_tb():

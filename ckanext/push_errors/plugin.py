@@ -6,7 +6,6 @@ from ckan.common import current_user
 from ckan.plugins import toolkit
 from ckanext.push_errors.logging import PushErrorHandler, push_message
 from ckanext.push_errors.cli import push_errors as push_errors_commands
-from ckanext.push_errors.error_logger import log_error
 from ckanext.push_errors.utils import get_error_trace_id
 
 from ckanext.push_errors.blueprints.push_errors import push_error_bp
@@ -44,12 +43,6 @@ class PushErrorsPlugin(plugins.SingletonPlugin):
                 # Check if the exception matches any known types and skip processing if so.
                 if isinstance(exception, skip_types_if_anon):
                     return None
-
-            # Registrar usando log_error (deduplicación y silenciado)
-            try:
-                log_error(exception)
-            except Exception as log_err:
-                log.warning(f'push-errors: log_error failed: {log_err}')
 
             exception_str = f'{exception} [({type(exception).__name__})]'
             # get the stacktrace

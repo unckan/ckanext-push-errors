@@ -92,17 +92,24 @@ def test_get_error_log_id_from_exc_info():
 
 def test_get_error_log_id_from_message_hash():
     """
-    Test that get_error_log_id generates a unique log ID for a given LogRecord.
+    Test that get_error_log_id generates a unique log ID when no exception info is provided.
 
-    This test creates a LogRecord with a critical error message and verifies that
-    the generated log ID starts with the expected prefix ("loghash:") and has a
-    length greater than 12 characters, ensuring the uniqueness and format of the
-    log identifier.
+    Uses a real logger to emit a message without exc_info and checks that the
+    resulting log ID starts with "loghash:" and is longer than 12 characters.
     """
-    record = logging.LogRecord(
-        name="test", level=logging.CRITICAL, pathname="", lineno=0,
-        msg="Some random critical error", args=(), exc_info=None
-    )
-    log_id = get_error_log_id(record)
+    logger = logging.getLogger("testlogger.hash")
+    logger.setLevel(logging.CRITICAL)
+    handler = ListHandler()
+    logger.addHandler(handler)
+
+    # Emitir log sin exc_info
+    logger.critical("Some random critical error")
+
+    # Validar
+    assert len(handler.records) > 0
+    log_record = handler.records[-1]
+    log_id = get_error_log_id(log_record)
     assert log_id.startswith("loghash:")
     assert len(log_id) > 12
+
+    logger.removeHandler(handler)

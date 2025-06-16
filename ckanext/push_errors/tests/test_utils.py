@@ -75,18 +75,20 @@ def test_get_error_log_id_from_exc_info():
     handler = ListHandler()
     logger.addHandler(handler)
 
-    # Ejecutar el log
+    # Execute the log by raising and catching a custom error
     raise_custom_error_and_log()
 
-    # Asegurar que se capturó un registro
+    # Ensure that at least one log record was captured
     assert len(handler.records) > 0, "Expected at least one log record"
 
     log_record = handler.records[-1]
     log_id = get_error_log_id(log_record)
+    # Check that the log ID does not start with "loghash:"
     assert not log_id.startswith("loghash:")
+    # Check that the log ID contains a colon
     assert ":" in log_id
 
-    # Limpieza
+    # Cleanup
     logger.removeHandler(handler)
 
 
@@ -102,14 +104,17 @@ def test_get_error_log_id_from_message_hash():
     handler = ListHandler()
     logger.addHandler(handler)
 
-    # Emitir log sin exc_info
+    # Emit a log message without exc_info
     logger.critical("Some random critical error")
 
-    # Validar
+    # Validate that a log record was captured
     assert len(handler.records) > 0
     log_record = handler.records[-1]
     log_id = get_error_log_id(log_record)
+    # Check that the log ID starts with "loghash:"
     assert log_id.startswith("loghash:")
+    # Check that the log ID is longer than 12 characters
     assert len(log_id) > 12
 
+    # Cleanup
     logger.removeHandler(handler)

@@ -6,6 +6,23 @@ class CustomError(Exception):
     pass
 
 
+def raise_custom_error_and_log():
+    try:
+        raise CustomError("Simulated catched error")
+    except Exception as e:
+        logging.getLogger("testlogger").critical(f"Some critical error {e}", exc_info=True)
+
+
+class ListHandler(logging.Handler):
+    """Custom handler to store log records in a list."""
+    def __init__(self):
+        super().__init__()
+        self.records = []
+
+    def emit(self, record):
+        self.records.append(record)
+
+
 def raise_custom_error():
     """Raises a CustomError to simulate an error scenario for testing purposes."""
     raise CustomError("Simulated error")
@@ -35,7 +52,6 @@ def test_get_error_trace_id_unknown_when_no_tb():
     the get_error_trace_id function returns the string 'unknown' as expected.
     """
     e = CustomError("No traceback")
-    e.__traceback__ = None
     trace_id = get_error_trace_id(e)
     assert trace_id == "unknown"
 
@@ -55,24 +71,23 @@ def test_get_error_log_id_from_exc_info():
     in a logging record and generates the expected identifier.
     """
     logger = logging.getLogger("testlogger")
+    logger.setLevel(logging.CRITICAL)
+    handler = ListHandler()
+    logger.addHandler(handler)
 
-    try:
-        raise_custom_error()
-    except CustomError as e:
-        record = logger.makeRecord(
-            name="testlogger",
-            level=logging.CRITICAL,
-            fn="test_file.py",
-            lno=99,
-            msg="An error occurred",
-            args=(),
-            exc_info=(type(e), e, e.__traceback__),
-            func="test_func",
-            extra=None
-        )
-        log_id = get_error_log_id(record)
-        assert log_id.startswith("loghash:") is False
-        assert ":" in log_id
+    # Ejecutar el log
+    raise_custom_error_and_log()
+
+    # Asegurar que se capturó un registro
+    assert len(handler.records) > 0, "Expected at least one log record"
+
+    log_record = handler.records[-1]
+    log_id = get_error_log_id(log_record)
+    assert not log_id.startswith("loghash:")
+    assert ":" in log_id
+
+    # Limpieza
+    logger.removeHandler(handler)
 
 
 def test_get_error_log_id_from_message_hash():

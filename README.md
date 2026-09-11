@@ -1,4 +1,4 @@
-[![Tests CKAN 2.10](https://github.com/unckan/ckanext-push-errors/workflows/Tests%20CKAN%202.10/badge.svg)](https://github.com/unckan/ckanext-push-errors/actions/workflows/test-2.10.yml)
+[![Tests CKAN 2.12](https://github.com/unckan/ckanext-push-errors/workflows/Tests%20CKAN%202.12/badge.svg)](https://github.com/unckan/ckanext-push-errors/actions/workflows/test-2.12.yml)
 [![Tests CKAN 2.11](https://github.com/unckan/ckanext-push-errors/workflows/Tests%20CKAN%202.11/badge.svg)](https://github.com/unckan/ckanext-push-errors/actions/workflows/test-2.11.yml)
 
 
@@ -15,9 +15,9 @@ Compatibility with core CKAN versions:
 
 | CKAN version    | Compatible?   |
 | --------------- | ------------- |
-| 2.9 and earlier | not tested    |
-| 2.10            | Yes           |
+| 2.10 and earlier | Until 0.1.6  |
 | 2.11            | Yes           |
+| 2.12            | Yes           |
 
 ## Installation
 

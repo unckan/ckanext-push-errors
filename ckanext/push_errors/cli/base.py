@@ -9,6 +9,7 @@ def push_message_cli(message):
 
     click.secho('Pusshing message ...', fg='green')
     click.secho(f'Message: {message}', fg='yellow', bold=True, bg='black')
+    response = None
     try:
         response = push_message(message)
     except Exception as e:
